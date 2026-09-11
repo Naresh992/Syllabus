@@ -1,0 +1,225 @@
+// Syllabus — Prisma schema (PostgreSQL — local dev and production).
+// Set DATABASE_URL to your Postgres connection string (Neon for production;
+// the same Neon DB works fine for local dev: `npm run setup && npm run dev`).
+// Array-ish fields (profile.photos, profile.prompts, profile.intentFilter)
+// are JSON-encoded strings (helpers in src/lib/json.ts) for portability.
+// ID photos live in the `VerificationDoc` table only (never joined into public
+// profile responses) — flagged for encryption-at-rest + object storage in prod.
+// -----------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Campus {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String   @unique // .edu suffix for auto-detection, e.g. "verrill.edu"
+  city      String?
+  createdAt DateTime @default(now())
+
+  users  User[]
+  events Event[]
+
+  @@map("campuses")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  passwordHash       String
+  name               String
+  dob                DateTime
+  campusId           String?
+  verificationStatus String   @default("pending") // pending | approved | rejected
+  isAdmin            Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  campus       Campus?          @relation(fields: [campusId], references: [id])
+  profile      Profile?
+  verification VerificationDoc? @relation("docOwner")
+  subscription Subscription?
+
+  swipesMade     Swipe[] @relation("swiper")
+  swipesReceived Swipe[] @relation("swiped")
+
+  matchesA Match[] @relation("userA")
+  matchesB Match[] @relation("userB")
+
+  messages Message[] @relation("sender")
+  rsvps    EventRSVP[]
+
+  reportsMade     Report[] @relation("reporter")
+  reportsReceived Report[] @relation("reported")
+  blocksMade      Block[]  @relation("blocker")
+  blocksReceived  Block[]  @relation("blocked")
+
+  reviewedDocs VerificationDoc[] @relation("reviewer")
+
+  @@map("users")
+}
+
+model VerificationDoc {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  idPhotoUrl     String // private data URL — NEVER exposed on public profiles
+  selfieUrl      String
+  status         String    @default("pending") // pending | approved | rejected
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  faceMatchScore Float? // placeholder for future KYC vendor (Persona/Onfido)
+  createdAt      DateTime  @default(now())
+
+  user     User  @relation("docOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("reviewer", fields: [reviewedBy], references: [id])
+
+  @@map("verification_docs")
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  bio         String   @default("")
+  photos      String   @default("[]") // JSON array of photo URLs
+  major       String   @default("")
+  classYear   String   @default("")
+  intent      String   @default("Open to Anything") // "Prerequisites" — relationship intent
+  hookupOptIn Boolean  @default(false)
+  prompts     String   @default("[]") // JSON array of { q, a }
+
+  // Discovery preferences (who I see)
+  ageMin         Int     @default(18)
+  ageMax         Int     @default(40)
+  sameCampusOnly Boolean @default(true) // combined with the tier's inter-college perk
+  intentFilter   String  @default("[]") // JSON array; empty = show all intents
+
+  // Privacy (who sees me)
+  sameCampusVisibility Boolean @default(false) // only same-campus students can see me
+  incognito            Boolean @default(false) // hide from discovery (Extra Credit perk)
+
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Swipe {
+  id        String   @id @default(cuid())
+  swiperId  String
+  swipedId  String
+  direction String // "add" (like) | "drop" (pass) | "raise_hand" (super like)
+  createdAt DateTime @default(now())
+
+  swiper User @relation("swiper", fields: [swiperId], references: [id], onDelete: Cascade)
+  swiped User @relation("swiped", fields: [swipedId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, swipedId])
+  @@index([swipedId])
+  @@map("swipes")
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  matchedAt DateTime @default(now())
+  active    Boolean  @default(true)
+
+  userA    User      @relation("userA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User      @relation("userB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([userAId, userBId])
+  @@map("matches")
+}
+
+model Message {
+  id       String   @id @default(cuid())
+  matchId  String
+  senderId String
+  content  String
+  sentAt   DateTime @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@map("messages")
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  tier                   String    @default("audit") // audit | enrolled | honor_roll | extra_credit
+  status                 String    @default("active") // active | canceled | past_due
+  provider               String    @default("razorpay")
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  currentPeriodEnd       DateTime?
+  updatedAt              DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  campusId    String
+  title       String
+  description String
+  date        DateTime
+  location    String
+  createdAt   DateTime @default(now())
+
+  campus Campus      @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  rsvps  EventRSVP[]
+
+  @@map("events")
+}
+
+model EventRSVP {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_rsvps")
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reportedId String
+  reason     String
+  context    String? // "profile" | "chat:<matchId>"
+  createdAt  DateTime @default(now())
+
+  reporter User @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("reported", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("blocks")
+}

@@ -1,0 +1,22 @@
+# Syllabus — production PostgreSQL (optional).
+# Local demo uses SQLite and needs none of this. For production:
+#   1. docker compose up -d
+#   2. provider = "postgresql" in prisma/schema.prisma
+#   3. DATABASE_URL="postgresql://syllabus:syllabus@localhost:5432/syllabus"
+#   4. npm run setup
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: syllabus
+      POSTGRES_PASSWORD: syllabus
+      POSTGRES_DB: syllabus
+    ports:
+      - "5432:5432"
+    volumes:
+      - syllabus-pgdata:/var/lib/postgresql/data
+
+volumes:
+  syllabus-pgdata:

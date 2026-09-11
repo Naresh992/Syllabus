@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #f6efe0;
+  --ink: #221a14;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background-color: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Film grain over everything — the anti-AI texture */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E");
+}
+
+/* Notebook dot-grid backdrop */
+.bg-notebook {
+  background-color: var(--paper);
+  background-image: radial-gradient(circle at 1px 1px, rgba(34, 26, 20, 0.10) 1.2px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    rgba(34, 26, 20, 0.10) 32px
+  );
+}
+
+/* Highlighter marker swipe behind display text */
+.hl {
+  background-image: linear-gradient(to top, #ffcf00 38%, transparent 38%);
+  padding: 0 0.12em;
+}
+.hl-red {
+  background-image: linear-gradient(to top, rgba(229, 56, 59, 0.35) 42%, transparent 42%);
+  padding: 0 0.12em;
+}
+.hl-green {
+  background-image: linear-gradient(to top, rgba(31, 77, 56, 0.25) 42%, transparent 42%);
+  padding: 0 0.12em;
+}
+
+@layer components {
+  .font-academic {
+    font-family: theme("fontFamily.serif");
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- Sticker buttons: chunky, loud, pressable ---- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border-2 border-ink px-5 py-2.5
+      font-display text-[13px] uppercase tracking-wider shadow-sticker-sm
+      transition-all duration-100 disabled:cursor-not-allowed disabled:opacity-50 select-none;
+  }
+  .btn:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 0 var(--ink);
+  }
+  .btn:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 0 var(--ink);
+  }
+  .btn-primary {
+    @apply btn bg-crimson-600 text-paper-50;
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply bg-crimson-500;
+  }
+  .btn-forest {
+    @apply btn bg-forest-600 text-paper-50;
+  }
+  .btn-marker {
+    @apply btn bg-marker text-ink;
+  }
+  .btn-ghost {
+    @apply btn bg-paper-50 text-ink;
+  }
+  .btn-danger {
+    @apply btn bg-paper-50 text-redpen;
+  }
+
+  /* ---- Sticker cards ---- */
+  .card {
+    @apply rounded-2xl border-2 border-ink bg-paper-50 shadow-sticker;
+  }
+  .card-flat {
+    @apply rounded-2xl border-2 border-ink bg-paper-50;
+  }
+
+  /* masking-tape strip on top of a card */
+  .taped {
+    position: relative;
+  }
+  .taped::before {
+    content: "";
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    width: 110px;
+    height: 26px;
+    transform: translateX(-50%) rotate(-3deg);
+    background: rgba(255, 207, 0, 0.75);
+    border-left: 2px dashed rgba(34, 26, 20, 0.25);
+    border-right: 2px dashed rgba(34, 26, 20, 0.25);
+    z-index: 1;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-lg border-2 border-ink px-2.5 py-0.5
+      font-display text-[11px] uppercase tracking-wide;
+  }
+
+  .input {
+    @apply w-full rounded-xl border-2 border-ink bg-paper-50 px-4 py-2.5 text-ink
+      placeholder:text-ink-faint focus:outline-none focus:ring-4 focus:ring-marker/60;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-bold uppercase tracking-wide text-ink;
+  }
+
+  /* red-pen margin note (handwritten) */
+  .margin-note {
+    @apply font-hand text-[1.35rem] leading-tight text-redpen;
+  }
+}
+
+/* Nice thin scrollbars in chat/lists */
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(34, 26, 20, 0.25);
+  border-radius: 999px;
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Outlined ghost type */
+.text-stroke {
+  -webkit-text-stroke: 2px var(--ink);
+  color: transparent;
+}
+.text-stroke-paper {
+  -webkit-text-stroke: 2px #fffdf4;
+  color: transparent;
+}

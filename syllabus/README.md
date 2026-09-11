@@ -34,17 +34,38 @@ npm run dev            # → http://localhost:3000
 4. **Vercel:** Add New → Project → Import the repo → set **Root Directory** to
    `syllabus` → add Environment Variables:
    - `DATABASE_URL` = the Neon connection string
-   - `SESSION_SECRET` = a long random string
+   - `SESSION_SECRET` = a long random string (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`)
    - (leave Razorpay vars empty for mock-mode payments)
    → **Deploy**. That's it — HTTPS is automatic, so secure cookies just work.
 
-### Demo accounts (see the login page shortcuts)
+## Going live (real users)
 
-| Role | Email | Password | Notes |
-|---|---|---|---|
-| Student | `alex@verrill.edu` | `password123` | Free **Audit** tier, 2 matches, incoming likes |
-| Admin | `admin@syllabus.app` | `admin123` | Approve/reject IDs at `/admin` |
-| Everyone | any seed `*@*.edu` | `password123` | 13 verified students across 3 campuses |
+- [ ] **Wipe demo data:** run `npx prisma db push --force-reset` against the
+  production `DATABASE_URL` — this empties all tables (including the seeded
+  fake students). Re-create only the admin afterwards, or keep seed data while
+  testing with friends.
+- [ ] **Set a strong admin password** (Settings → Change password once signed
+  in as admin) and store it in a password manager.
+- [ ] **Rotate the Neon password** if it was ever shared (Neon dashboard →
+  connection details → reset), then update Vercel's `DATABASE_URL` + redeploy.
+- [ ] **Razorpay:** mock mode lets anyone "upgrade" for free. Add live keys
+  (`RAZORPAY_KEY_ID/SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, webhook secret)
+  before charging real users — this requires a Razorpay business account + KYC.
+- [ ] **Moderation:** the admin desk covers ID review; reported profiles land
+  in the `reports` table (review via `npx prisma studio` until a UI exists).
+- [ ] Know the MVP limits: placeholder face-match (integrate Persona/Onfido
+  before scaling), no email verification yet, polling-based chat.
+
+### Demo accounts (seeded by `npm run db:seed`)
+
+| Role | Email | Notes |
+|---|---|---|
+| Student | `alex@verrill.edu` | Free **Audit** tier, 2 matches, incoming likes |
+| Admin | `admin@syllabus.app` | Approve/reject IDs at `/admin` |
+| Everyone | any seed `*@*.edu` | 14 verified students across 3 campuses |
+
+Seeded passwords are for local testing only — never use them in production.
+Before inviting real users, wipe demo data (see "Going live" below).
 
 ### Suggested demo script
 

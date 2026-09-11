@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { Spinner, Doodle } from "@/components/ui";
+import { Spinner } from "@/components/ui";
 import { apiPost } from "@/lib/fetcher";
 
 export default function LoginPage() {
@@ -27,11 +27,6 @@ export default function LoginPage() {
       setError(err.message || "Could not sign in.");
       setBusy(false);
     }
-  }
-
-  function fill(e: string, p: string) {
-    setEmail(e);
-    setPassword(p);
   }
 
   return (
@@ -92,27 +87,9 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Demo helpers */}
-          <div className="mt-5 -rotate-1 rounded-2xl border-2 border-dashed border-ink/40 bg-paper-50/70 p-4">
-            <p className="font-hand mb-2 text-2xl text-ink-light">psst — demo shortcuts ↓</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => fill("alex@verrill.edu", "password123")}
-                className="btn-ghost !py-1.5 !text-xs"
-              >
-                Demo student
-              </button>
-              <button
-                type="button"
-                onClick={() => fill("admin@syllabus.app", "admin123")}
-                className="btn-ghost !py-1.5 !text-xs"
-              >
-                Admin
-              </button>
-            </div>
-            <Doodle name="arrow" className="mt-1 h-8 w-20 text-ink-faint" />
-          </div>
+          <p className="font-hand mt-5 text-center text-2xl text-ink-faint">
+            verified students only — enroll with your .edu email ↓
+          </p>
         </div>
       </main>
     </div>

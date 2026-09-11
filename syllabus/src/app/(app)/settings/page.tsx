@@ -154,6 +154,12 @@ export default function SettingsPage() {
         <Link href="/pricing" className="btn-primary mt-4">Manage plan</Link>
       </section>
 
+      {/* Security */}
+      <section className="card p-5">
+        <h2 className="font-display text-lg uppercase">Security</h2>
+        <PasswordForm />
+      </section>
+
       {!hasProfile ? (
         <section className="card ruled p-6 text-center">
           <p className="text-ink-light">You haven&apos;t built your profile yet.</p>
@@ -325,4 +331,57 @@ function StatusBadge({ status }: { status: string }) {
     rejected: "bg-redpen/10 text-redpen",
   };
   return <span className={`badge ${map[status] ?? "bg-paper-200"}`}>{status}</span>;
+}
+
+function PasswordForm() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    if (next !== confirm) return setMsg({ ok: false, text: "New passwords don't match." });
+    setBusy(true);
+    try {
+      await apiPost("/api/auth/password", { current, next });
+      setMsg({ ok: true, text: "Password updated." });
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+    } catch (err: any) {
+      setMsg({ ok: false, text: err.message || "Could not update password." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-3 space-y-3">
+      <div>
+        <label className="label">Current password</label>
+        <input type="password" className="input" value={current} onChange={(e) => setCurrent(e.target.value)} required />
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label className="label">New password</label>
+          <input type="password" className="input" value={next} onChange={(e) => setNext(e.target.value)} required />
+        </div>
+        <div>
+          <label className="label">Confirm new</label>
+          <input type="password" className="input" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+        </div>
+      </div>
+      {msg && (
+        <p className={`rounded-xl border-2 border-ink px-3 py-2 text-sm font-bold ${msg.ok ? "bg-forest-600/10 text-forest-700" : "bg-redpen/10 text-redpen"}`}>
+          {msg.text}
+        </p>
+      )}
+      <button type="submit" className="btn-ghost" disabled={busy}>
+        {busy ? <Spinner className="h-4 w-4" /> : "Change password"}
+      </button>
+    </form>
+  );
 }

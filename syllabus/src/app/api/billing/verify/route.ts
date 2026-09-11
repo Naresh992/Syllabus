@@ -21,12 +21,24 @@ export async function POST(req: Request) {
     return apiError.badRequest("Invalid payment confirmation.");
   }
   const { tier, orderId, paymentId, signature } = parsed.data;
-
+  const tierInfo = getTier(tier);
+  const payment = await prisma.payment.findUnique({ where: { orderId } });
+  if (!payment || payment.userId !== user.id || payment.tier !== tier || payment.amount !== tierInfo.priceInr * 100) {
+    return apiError.badRequest("Payment order does not match this account or plan.");
+  }
+  if (payment.status === "captured" && payment.paymentId === paymentId) {
+    return json({ ok: true, tier, tierName: tierInfo.name, currentPeriodEnd: new Date() });
+  }
   const valid = verifyPaymentSignature({ orderId, paymentId, signature });
   if (!valid) return apiError.badRequest("Payment could not be verified.");
 
   const periodEnd = new Date();
   periodEnd.setDate(periodEnd.getDate() + 30);
+
+  await prisma.payment.update({
+    where: { orderId },
+    data: { status: "captured", paymentId, rawPayload: null },
+  });
 
   await prisma.subscription.upsert({
     where: { userId: user.id },

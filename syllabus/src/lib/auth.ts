@@ -9,8 +9,11 @@ const DAY = 60 * 60 * 24;
 const MAX_AGE = 30 * DAY;
 
 function secret(): Uint8Array {
-  const s = process.env.SESSION_SECRET || "insecure-dev-secret-change-me";
-  return new TextEncoder().encode(s);
+  const configured = process.env.SESSION_SECRET;
+  if (!configured && process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET must be configured in production.");
+  }
+  return new TextEncoder().encode(configured || "local-development-only-secret");
 }
 
 export async function hashPassword(password: string): Promise<string> {

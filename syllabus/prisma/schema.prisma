@@ -35,7 +35,10 @@ model User {
   passwordHash       String
   name               String
   dob                DateTime
-  campusId           String?
+  campusId           String? // set when email domain matches a known campus; else null (global signup)
+  college            String? // free-text college/university (global signup)
+  city               String?
+  country            String?
   verificationStatus String   @default("pending") // pending | approved | rejected
   isAdmin            Boolean  @default(false)
   createdAt          DateTime @default(now())

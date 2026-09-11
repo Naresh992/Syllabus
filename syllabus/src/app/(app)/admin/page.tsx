@@ -11,6 +11,9 @@ type Doc = {
   email: string;
   campus: string | null;
   domain: string | null;
+  college: string | null;
+  city: string | null;
+  country: string | null;
   age: number;
   status: string;
   idPhotoUrl: string;
@@ -113,7 +116,10 @@ export default function AdminPage() {
                 <div>
                   <p className="font-display text-base uppercase">{d.name}, {d.age}</p>
                   <p className="text-sm font-medium text-ink-light">{d.email}</p>
-                  <p className="text-xs font-bold uppercase text-ink-faint">{d.campus} · {d.domain}</p>
+                  <p className="text-xs font-bold uppercase text-ink-faint">
+                    {d.campus ?? "—"}{d.domain ? ` · ${d.domain}` : ""}
+                    {[d.city, d.country].filter(Boolean).length > 0 ? ` · ${[d.city, d.country].filter(Boolean).join(", ")}` : ""}
+                  </p>
                 </div>
                 <StatusPill status={d.status} />
               </div>

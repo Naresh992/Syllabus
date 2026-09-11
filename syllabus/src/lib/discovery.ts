@@ -62,7 +62,9 @@ export async function getDiscoveryStack(userId: string, limit = 30): Promise<Car
       isAdmin: false,
       verificationStatus: "approved",
       dob: { lte: maxDob, gt: minDob },
-      ...(effectiveInterCollege ? {} : { campusId: me.campusId }),
+      // Free tier restricts to your campus — unless you have no campus
+      // (global signup), in which case discovery is worldwide.
+      ...(effectiveInterCollege || !me.campusId ? {} : { campusId: me.campusId }),
       profile: {
         incognito: false,
         ...(intentFilter.length ? { intent: { in: intentFilter } } : {}),

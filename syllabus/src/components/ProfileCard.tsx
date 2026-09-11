@@ -95,6 +95,7 @@ export default function ProfileCard({
               <p className="mt-1 text-xs font-bold uppercase tracking-wide opacity-90">
                 {profile.major}
                 {profile.campus ? ` · ${profile.campus}` : ""}
+                {profile.location ? ` · ${profile.location}` : ""}
               </p>
               <p className="text-[11px] font-medium uppercase tracking-wide opacity-70">{profile.classYear}</p>
             </div>

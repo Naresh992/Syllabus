@@ -9,6 +9,9 @@ const schema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters").max(200),
   dob: z.string().refine((s) => !Number.isNaN(Date.parse(s)), "Enter a valid date of birth"),
+  college: z.string().trim().max(120).optional().default(""),
+  city: z.string().trim().max(80).optional().default(""),
+  country: z.string().trim().max(80).optional().default(""),
 });
 
 export async function POST(req: Request) {
@@ -19,19 +22,19 @@ export async function POST(req: Request) {
   }
   const { name, email, password, dob } = parsed.data;
 
-  // .edu requirement + campus auto-detection from domain
+  // Students from ANY college, city, or country can join. If the email domain
+  // matches a known campus (.edu), auto-detect it; otherwise the student is
+  // verified manually from their college ID by an admin.
   const domain = email.split("@")[1] ?? "";
-  if (!domain.endsWith(".edu")) {
-    return apiError.badRequest("Please use your college email address (must end in .edu).");
+  const campus = await prisma.campus.findUnique({ where: { domain } }).catch(() => null);
+
+  let { college, city, country } = parsed.data;
+  if (campus) {
+    college = college || campus.name;
+    city = city || campus.city || "";
   }
-  const campus = await prisma.campus.findUnique({ where: { domain } });
-  if (!campus) {
-    const campuses = await prisma.campus.findMany({ select: { domain: true } });
-    return apiError.badRequest(
-      `We haven't launched at ${domain} yet. Supported campuses: ${campuses
-        .map((c) => c.domain)
-        .join(", ")}.`
-    );
+  if (!college) {
+    return apiError.badRequest("Tell us your college or university.");
   }
 
   // Hard 18+ gate
@@ -51,7 +54,10 @@ export async function POST(req: Request) {
       email,
       passwordHash: await hashPassword(password),
       dob: new Date(dob),
-      campusId: campus.id,
+      campusId: campus?.id ?? null,
+      college,
+      city: city || null,
+      country: country || null,
       verificationStatus: "pending",
       subscription: { create: { tier: "audit", status: "active" } },
     },

@@ -66,6 +66,9 @@ export default function EnrollPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [college, setCollege] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
   // docs
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
@@ -115,8 +118,9 @@ export default function EnrollPage() {
     e.preventDefault();
     setError(null);
     if (name.trim().length < 1) return setError("Enter your name.");
-    if (!email.toLowerCase().endsWith(".edu")) return setError("Use your college .edu email.");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError("Enter a valid email.");
     if (password.length < 8) return setError("Password must be at least 8 characters.");
+    if (college.trim().length < 2) return setError("Tell us your college or university.");
     setStage("id");
   }
 
@@ -158,7 +162,7 @@ export default function EnrollPage() {
     // Create account + attach verification docs.
     setBusy(true);
     try {
-      await apiPost("/api/auth/signup", { name, email, password, dob });
+      await apiPost("/api/auth/signup", { name, email, password, dob, college, city, country });
       await apiPost("/api/verification", { idPhotoUrl: idPhoto, selfieUrl: selfie });
       router.refresh();
       setStage("profile");
@@ -253,7 +257,7 @@ export default function EnrollPage() {
         {stage === "account" && (
           <StepCard
             title="Create your account"
-            subtitle="Sign up with your college email. We'll auto-detect your campus."
+            subtitle="Any student, any college, any country. Use a .edu email and we'll auto-detect your campus."
           >
             <form onSubmit={submitAccount} className="space-y-4">
               <div>
@@ -261,9 +265,22 @@ export default function EnrollPage() {
                 <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Rivera" required />
               </div>
               <div>
-                <label className="label">College email (.edu)</label>
-                <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@verrill.edu" required />
-                <p className="mt-1 text-xs text-ink-faint">Launch campuses: verrill.edu · lakeside.edu · northwood.edu</p>
+                <label className="label">Email</label>
+                <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@college.edu" required />
+              </div>
+              <div>
+                <label className="label">College / University</label>
+                <input className="input" value={college} onChange={(e) => setCollege(e.target.value)} placeholder="e.g. University of Mumbai" required />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">City</label>
+                  <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Mumbai" />
+                </div>
+                <div>
+                  <label className="label">Country</label>
+                  <input className="input" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="India" />
+                </div>
               </div>
               <div>
                 <label className="label">Password</label>

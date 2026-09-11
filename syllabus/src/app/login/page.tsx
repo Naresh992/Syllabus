@@ -44,13 +44,13 @@ export default function LoginPage() {
 
             <form onSubmit={submit} className="mt-6 space-y-4">
               <div>
-                <label className="label" htmlFor="email">College email</label>
+                <label className="label" htmlFor="email">Email</label>
                 <input
                   id="email"
                   type="email"
                   autoComplete="email"
                   className="input"
-                  placeholder="you@verrill.edu"
+                  placeholder="you@college.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -88,7 +88,7 @@ export default function LoginPage() {
           </div>
 
           <p className="font-hand mt-5 text-center text-2xl text-ink-faint">
-            verified students only — enroll with your .edu email ↓
+            verified students only — any college, anywhere ↓
           </p>
         </div>
       </main>

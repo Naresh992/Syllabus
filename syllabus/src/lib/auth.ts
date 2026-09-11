@@ -72,6 +72,9 @@ export type SessionUser = {
   campusId: string | null;
   campusName: string | null;
   campusDomain: string | null;
+  college: string | null;
+  city: string | null;
+  country: string | null;
   tier: string;
   hasProfile: boolean;
 };
@@ -92,8 +95,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     isAdmin: user.isAdmin,
     verificationStatus: user.verificationStatus,
     campusId: user.campusId,
-    campusName: user.campus?.name ?? null,
+    campusName: user.campus?.name ?? user.college,
     campusDomain: user.campus?.domain ?? null,
+    college: user.college,
+    city: user.city,
+    country: user.country,
     tier: user.subscription?.tier ?? "audit",
     hasProfile: !!user.profile,
   };

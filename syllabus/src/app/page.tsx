@@ -131,7 +131,7 @@ export default function LandingPage() {
         </h2>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { n: "01", t: "Enroll", d: "Sign up with your .edu email. Upload your student ID + a live selfie.", r: "-rotate-2", c: "bg-marker" },
+            { n: "01", t: "Enroll", d: "Sign up from any college in the world. Upload your student ID + a live selfie.", r: "-rotate-2", c: "bg-marker" },
             { n: "02", t: "Get verified", d: "We confirm you're a real 18+ student before you can browse a single profile.", r: "rotate-1", c: "bg-crimson-600" },
             { n: "03", t: "Hit the Syllabus", d: "Swipe right to ADD, left to DROP. Set your Prerequisites, raise hands.", r: "-rotate-1", c: "bg-forest-600" },
             { n: "04", t: "Office Hours", d: "Match into your Roster and start chatting. Slide in respectfully.", r: "rotate-2", c: "bg-ink" },

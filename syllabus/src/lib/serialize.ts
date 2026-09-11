@@ -9,6 +9,7 @@ export type CardProfile = {
   classYear: string;
   campus: string | null;
   campusId: string | null;
+  location: string | null; // "City, Country" for global users
   intent: string;
   hookupOptIn: boolean;
   bio: string;
@@ -24,6 +25,9 @@ type UserForCard = {
   name: string;
   dob: Date;
   campusId: string | null;
+  college: string | null;
+  city: string | null;
+  country: string | null;
   campus: { name: string } | null;
   subscription: { tier: string } | null;
   profile: {
@@ -41,14 +45,16 @@ export function toCard(
   u: UserForCard,
   extra?: { likedYou?: boolean; superLikedYou?: boolean }
 ): CardProfile {
+  const location = [u.city, u.country].filter(Boolean).join(", ") || null;
   return {
     id: u.id,
     name: u.name,
     age: calcAge(u.dob),
     major: u.profile?.major ?? "",
     classYear: u.profile?.classYear ?? "",
-    campus: u.campus?.name ?? null,
+    campus: u.campus?.name ?? u.college,
     campusId: u.campusId,
+    location,
     intent: u.profile?.intent ?? "Open to Anything",
     hookupOptIn: u.profile?.hookupOptIn ?? false,
     bio: u.profile?.bio ?? "",

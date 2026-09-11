@@ -18,6 +18,8 @@ type Me = {
   name: string;
   email: string;
   campusName: string | null;
+  city: string | null;
+  country: string | null;
   verificationStatus: string;
   tier: string;
 };
@@ -132,7 +134,8 @@ export default function SettingsPage() {
         <div className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
           <span className="text-ink-faint">Name</span><span className="text-right font-medium">{me.name}</span>
           <span className="text-ink-faint">Email</span><span className="text-right font-medium">{me.email}</span>
-          <span className="text-ink-faint">Campus</span><span className="text-right font-medium">{me.campusName ?? "—"}</span>
+          <span className="text-ink-faint">College</span><span className="text-right font-medium">{me.campusName ?? "—"}</span>
+          <span className="text-ink-faint">Location</span><span className="text-right font-medium">{[me.city, me.country].filter(Boolean).join(", ") || "—"}</span>
           <span className="text-ink-faint">Status</span>
           <span className="text-right">
             <StatusBadge status={me.verificationStatus} />

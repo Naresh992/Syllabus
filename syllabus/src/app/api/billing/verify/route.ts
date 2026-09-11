@@ -35,29 +35,33 @@ export async function POST(req: Request) {
   const periodEnd = new Date();
   periodEnd.setDate(periodEnd.getDate() + 30);
 
-  await prisma.payment.update({
-    where: { orderId },
-    data: { status: "captured", paymentId, rawPayload: null },
-  });
+  try {
+    await prisma.payment.update({
+      where: { orderId },
+      data: { status: "captured", paymentId, rawPayload: null },
+    });
 
-  await prisma.subscription.upsert({
-    where: { userId: user.id },
-    create: {
-      userId: user.id,
-      tier,
-      status: "active",
-      provider: "razorpay",
-      providerSubscriptionId: paymentId,
-      currentPeriodEnd: periodEnd,
-    },
-    update: {
-      tier,
-      status: "active",
-      provider: "razorpay",
-      providerSubscriptionId: paymentId,
-      currentPeriodEnd: periodEnd,
-    },
-  });
+    await prisma.subscription.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        tier,
+        status: "active",
+        provider: "razorpay",
+        providerSubscriptionId: paymentId,
+        currentPeriodEnd: periodEnd,
+      },
+      update: {
+        tier,
+        status: "active",
+        provider: "razorpay",
+        providerSubscriptionId: paymentId,
+        currentPeriodEnd: periodEnd,
+      },
+    });
+  } catch {
+    return apiError.server("Could not complete the upgrade. Contact support.");
+  }
 
   return json({ ok: true, tier, tierName: getTier(tier as TierId).name, currentPeriodEnd: periodEnd });
 }

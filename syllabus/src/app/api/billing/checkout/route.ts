@@ -21,19 +21,19 @@ export async function POST(req: Request) {
   let order;
   try {
     order = await createTierOrder(tierId, user.id);
+    await prisma.payment.create({
+      data: {
+        userId: user.id,
+        tier: tierId,
+        orderId: order.orderId,
+        amount: order.amount,
+        currency: order.currency,
+        status: "created",
+      },
+    });
   } catch {
-    return apiError.server("Live Razorpay payments are not configured.");
+    return apiError.server("Checkout is unavailable right now. Payments are not configured yet.");
   }
-  await prisma.payment.create({
-    data: {
-      userId: user.id,
-      tier: tierId,
-      orderId: order.orderId,
-      amount: order.amount,
-      currency: order.currency,
-      status: "created",
-    },
-  });
   return json({
     ...order,
     tier: tierId,

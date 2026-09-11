@@ -29,7 +29,7 @@ export type CreatedOrder = {
 export async function createTierOrder(tierId: TierId, userId: string): Promise<CreatedOrder> {
   const tier = getTier(tierId);
   const amountPaise = tier.priceInr * 100;
-  const receipt = `syllabus_${tierId}_${userId.slice(0, 8)}_${Date.now()}`;
+  const receipt = `resyllabus_${tierId}_${userId.slice(0, 8)}_${Date.now()}`;
 
   if (!isRazorpayLive()) {
     throw new Error("Razorpay is not configured for live payments.");

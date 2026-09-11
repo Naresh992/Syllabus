@@ -57,7 +57,7 @@ export function avatarSvg(seed: string, label = ""): string {
   <rect x="70" y="600" width="360" height="4" fill="rgba(255,255,255,0.18)"/>
   <rect x="70" y="640" width="410" height="4" fill="rgba(255,255,255,0.14)"/>
   <text x="300" y="735" font-family="Georgia, serif" font-size="26" letter-spacing="6"
-        fill="rgba(255,255,255,0.7)" text-anchor="middle">SYLLABUS</text>
+        fill="rgba(255,255,255,0.7)" text-anchor="middle">RESYLLABUS</text>
 </svg>`;
 }
 

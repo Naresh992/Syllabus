@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   // Hard 18+ gate
   const age = calcAge(dob);
   if (Number.isNaN(age) || age < MIN_AGE) {
-    return apiError.badRequest(`You must be at least ${MIN_AGE} to join Syllabus.`);
+    return apiError.badRequest(`You must be at least ${MIN_AGE} to join Resyllabus.`);
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });

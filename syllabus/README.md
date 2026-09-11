@@ -1,4 +1,4 @@
-# Syllabus — Add someone to your syllabus.
+# Resyllabus — Add someone to your syllabus.
 
 A dating platform exclusively for **verified college students (18+)**.
 Enroll with your `.edu` email → get ID-verified → browse **The Syllabus** →

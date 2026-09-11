@@ -72,7 +72,7 @@ export default function LandingPage() {
             <span className="text-crimson-600">.</span>
           </h1>
           <p className="mt-5 max-w-md text-lg font-medium text-ink-light">
-            {TAGLINE} Syllabus is exclusively for <b className="text-ink">verified, 18+ college
+            {TAGLINE} Resyllabus is exclusively for <b className="text-ink">verified, 18+ college
             students</b>. Real classmates. No bots. No randos. No weirdos from three area codes away.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -198,7 +198,7 @@ export default function LandingPage() {
               Trust is the <span className="text-marker">whole point</span>
             </h2>
             <p className="mt-4 max-w-md font-medium text-paper-50/70">
-              Dating apps are full of bots and liars. Syllabus isn&apos;t. Every single profile is a
+              Dating apps are full of bots and liars. Resyllabus isn&apos;t. Every single profile is a
               verified, 18+ college student — reviewed <i>before</i> they can ever swipe.
             </p>
             <Link href="/enroll" className="btn-marker mt-6 -rotate-1">
@@ -283,7 +283,7 @@ export default function LandingPage() {
           class starts whenever you enroll…
         </p>
         <Link href="/enroll" className="btn-primary mx-auto mt-7 -rotate-1 px-10 py-4 !text-lg">
-          Enroll in Syllabus →
+          Enroll in Resyllabus →
         </Link>
       </section>
 

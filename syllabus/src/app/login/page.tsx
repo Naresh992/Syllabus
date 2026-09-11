@@ -40,7 +40,7 @@ export default function LoginPage() {
           <div className="card taped p-7 pt-9">
             <p className="font-hand -rotate-1 text-2xl text-redpen">back to class!</p>
             <h1 className="font-display text-3xl uppercase leading-none">Welcome back</h1>
-            <p className="mt-1.5 font-medium text-ink-light">Sign in to your Syllabus account.</p>
+            <p className="mt-1.5 font-medium text-ink-light">Sign in to your Resyllabus account.</p>
 
             <form onSubmit={submit} className="mt-6 space-y-4">
               <div>

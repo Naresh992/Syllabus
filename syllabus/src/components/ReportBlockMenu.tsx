@@ -82,7 +82,7 @@ export default function ReportBlockMenu({
         ) : mode === "menu" ? (
           <div className="space-y-2">
             <p className="mb-2 text-sm text-ink-light">
-              Keep Syllabus safe. Report or block{" "}
+              Keep Resyllabus safe. Report or block{" "}
               <span className="font-bold text-ink">{targetName}</span>.
             </p>
             <button className="btn-ghost w-full justify-start" onClick={() => setMode("report")}>

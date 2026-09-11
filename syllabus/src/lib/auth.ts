@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
-const COOKIE_NAME = "syllabus_session";
+const COOKIE_NAME = "resyllabus_session";
 const DAY = 60 * 60 * 24;
 const MAX_AGE = 30 * DAY;
 

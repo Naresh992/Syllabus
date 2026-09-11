@@ -20,7 +20,7 @@ export default function Logo({
           text
         )}
       >
-        Syllabus<span className="text-marker">.</span>
+        Resyllabus<span className="text-marker">.</span>
       </span>
       {size !== "sm" && (
         <span className="ml-1.5 hidden rotate-2 rounded-md border-2 border-ink bg-marker px-1.5 py-0.5 font-display text-[10px] uppercase text-ink sm:inline-block">

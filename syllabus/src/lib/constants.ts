@@ -1,6 +1,6 @@
-// Shared domain constants for Syllabus.
+// Shared domain constants for Resyllabus.
 
-export const APP_NAME = "Syllabus";
+export const APP_NAME = "Resyllabus";
 export const TAGLINE = "Add someone to your syllabus.";
 
 // Relationship intent = "Prerequisites" (required, single-select).

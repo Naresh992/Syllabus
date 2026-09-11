@@ -21,9 +21,9 @@ const hand = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Syllabus — Add someone to your syllabus",
+  title: "Resyllabus — Add someone to your syllabus",
   description:
-    "Syllabus is the dating app exclusively for verified college students. Enroll, browse The Syllabus, build your Roster, and slide into Office Hours.",
+    "Resyllabus is the dating app exclusively for verified college students. Enroll, browse The Syllabus, build your Roster, and slide into Office Hours.",
 };
 
 export const viewport: Viewport = {

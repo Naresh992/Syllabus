@@ -54,7 +54,7 @@ export default function PricingPage() {
         amount: order.amount,
         currency: order.currency,
         order_id: order.orderId,
-        name: "Syllabus",
+        name: "Resyllabus",
         description: `${order.tierName} plan`,
         prefill: order.prefill,
         theme: { color: "#8a1c2b" },

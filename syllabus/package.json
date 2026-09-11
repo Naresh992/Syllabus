@@ -1,8 +1,8 @@
 {
-  "name": "syllabus",
+  "name": "resyllabus",
   "version": "0.1.0",
   "private": true,
-  "description": "Syllabus — a dating platform for verified college students. Add someone to your syllabus.",
+  "description": "Resyllabus — a dating platform for verified college students. Add someone to your syllabus.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

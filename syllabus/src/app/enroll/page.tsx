@@ -157,7 +157,7 @@ export default function EnrollPage() {
     setError(null);
     if (!dob) return setError("Enter your date of birth.");
     if (dobAge == null || dobAge < MIN_AGE) {
-      return setError(`You must be at least ${MIN_AGE} to join Syllabus.`);
+      return setError(`You must be at least ${MIN_AGE} to join Resyllabus.`);
     }
     // Create account + attach verification docs.
     setBusy(true);
@@ -321,7 +321,7 @@ export default function EnrollPage() {
         )}
 
         {stage === "dob" && (
-          <StepCard title="Your date of birth" subtitle="Syllabus is strictly 18+. Under-18 sign-ups are blocked.">
+          <StepCard title="Your date of birth" subtitle="Resyllabus is strictly 18+. Under-18 sign-ups are blocked.">
             <input className="input" type="date" value={dob} onChange={(e) => setDob(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
             {dobAge != null && (
               <p className={`mt-2 text-sm ${dobAge < MIN_AGE ? "text-redpen" : "text-forest-700"}`}>

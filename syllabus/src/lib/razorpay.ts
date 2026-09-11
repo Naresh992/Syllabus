@@ -3,10 +3,7 @@ import crypto from "crypto";
 import { getTier, type TierId } from "./tiers";
 
 // -----------------------------------------------------------------------------
-// Razorpay integration.
-// If RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET are set, we create real (test-mode)
-// orders and verify signatures. Otherwise we run in MOCK mode so the entire
-// paywall + upgrade flow is demoable without any keys or network calls.
+// Razorpay integration. Production never falls back to simulated payments.
 // -----------------------------------------------------------------------------
 
 const KEY_ID = process.env.RAZORPAY_KEY_ID || "";
@@ -35,13 +32,7 @@ export async function createTierOrder(tierId: TierId, userId: string): Promise<C
   const receipt = `syllabus_${tierId}_${userId.slice(0, 8)}_${Date.now()}`;
 
   if (!isRazorpayLive()) {
-    return {
-      mock: true,
-      orderId: `order_mock_${crypto.randomBytes(8).toString("hex")}`,
-      amount: amountPaise,
-      currency: "INR",
-      keyId: "rzp_test_mock",
-    };
+    throw new Error("Razorpay is not configured for live payments.");
   }
 
   const Razorpay = (await import("razorpay")).default;
@@ -67,9 +58,7 @@ export function verifyPaymentSignature(params: {
   paymentId: string;
   signature: string;
 }): boolean {
-  // Mock orders are always "verified" (no real payment happened).
-  if (params.orderId.startsWith("order_mock_")) return true;
-  if (!KEY_SECRET) return false;
+  if (!KEY_SECRET || params.orderId.startsWith("order_mock_")) return false;
   const expected = crypto
     .createHmac("sha256", KEY_SECRET)
     .update(`${params.orderId}|${params.paymentId}`)

@@ -31,8 +31,6 @@ export default function PricingPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const demoMode = !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-
   useEffect(() => {
     apiGet("/api/auth/me").then(({ user }) => setCurrent(user.tier)).catch(() => setCurrent("audit"));
   }, []);
@@ -49,17 +47,6 @@ export default function PricingPage() {
     setBusyTier(tierId);
     try {
       const order = await apiPost("/api/billing/checkout", { tier: tierId });
-      if (order.mock) {
-        // Demo mode: simulate a successful payment.
-        await apiPost("/api/billing/verify", {
-          tier: tierId,
-          orderId: order.orderId,
-          paymentId: `pay_mock_${Date.now()}`,
-          signature: "mock",
-        });
-        finishUpgrade(tierId);
-        return;
-      }
       const ok = await loadRazorpayScript();
       if (!ok) throw new Error("Couldn't load Razorpay. Check your connection.");
       const rzp = new window.Razorpay({
@@ -117,11 +104,6 @@ export default function PricingPage() {
           Free to audit.<br />Cheap to <span className="hl">ace.</span>
         </h1>
         <p className="mt-2 font-medium text-ink-light">Upgrade anytime. Billed monthly via Razorpay.</p>
-        {demoMode && (
-          <p className="font-hand mx-auto mt-3 max-w-md text-2xl leading-tight text-ink-light">
-            payments in <b>demo mode</b> — upgrades complete instantly, no real charge.
-          </p>
-        )}
       </div>
 
       {error && (

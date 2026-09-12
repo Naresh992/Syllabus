@@ -163,7 +163,7 @@ model Subscription {
   userId                 String    @unique
   tier                   String    @default("audit") // audit | enrolled | honor_roll | extra_credit
   status                 String    @default("active") // active | canceled | past_due
-  provider               String    @default("dodo")
+  provider               String    @default("razorpay")
   providerCustomerId     String?
   providerSubscriptionId String?
   currentPeriodEnd       DateTime?

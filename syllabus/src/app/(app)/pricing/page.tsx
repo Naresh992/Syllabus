@@ -7,32 +7,12 @@ import { LoadingScreen, Spinner, Seal } from "@/components/ui";
 import { apiGet, apiPost } from "@/lib/fetcher";
 import { TIERS, TIER_ORDER, type TierId } from "@/lib/tiers";
 
-declare global {
-  interface Window {
-    Cashfree?: any;
-  }
-}
-
-function loadCashfreeScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (window.Cashfree) return resolve(true);
-    const s = document.createElement("script");
-    s.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.body.appendChild(s);
-  });
-}
-
 export default function PricingPage() {
   const router = useRouter();
   const [current, setCurrent] = useState<string | null>(null);
   const [busyTier, setBusyTier] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [phoneTier, setPhoneTier] = useState<TierId | null>(null);
-  const [phone, setPhone] = useState("");
-  const [phoneBusy, setPhoneBusy] = useState(false);
 
   useEffect(() => {
     apiGet("/api/auth/me").then(({ user }) => setCurrent(user.tier)).catch(() => setCurrent("audit"));
@@ -45,72 +25,18 @@ export default function PricingPage() {
     router.refresh();
   }
 
-  function reportFailure(orderId: string, info: any) {
-    apiPost("/api/billing/failure", {
-      orderId,
-      code: info?.code ?? null,
-      description: info?.message || info?.description || null,
-      reason: info?.reason || info?.type || null,
-      source: null,
-      step: null,
-    }).catch(() => {
-      /* reporting must never break the UI */
-    });
-  }
-
-  // Step 1: ask for the mobile number Cashfree requires, then pay.
-  function choose(tierId: TierId) {
+  // Dodo hosted checkout: server creates a session, browser redirects to pay,
+  // Dodo returns to /billing/return which confirms + upgrades.
+  async function choose(tierId: TierId) {
     setError(null);
-    setPhoneTier(tierId);
-  }
-
-  async function payWithPhone() {
-    if (!phoneTier) return;
-    const tierId = phoneTier;
-    if (!/^[6-9]\d{9}$/.test(phone.replace(/\D/g, "").replace(/^91/, ""))) {
-      setError("Enter a valid 10-digit mobile number.");
-      return;
-    }
-    setError(null);
-    setPhoneBusy(true);
     setBusyTier(tierId);
     try {
-      const order = await apiPost("/api/billing/checkout", { tier: tierId, phone });
-      setPhoneTier(null);
-      const ok = await loadCashfreeScript();
-      if (!ok) throw new Error("Couldn't load the payment window. Check your connection.");
-      const cashfree = window.Cashfree({ mode: order.environment === "production" ? "production" : "sandbox" });
-      const result = await cashfree.checkout({
-        paymentSessionId: order.paymentSessionId,
-        redirectTarget: "_modal",
-      });
-      if (result?.error) {
-        reportFailure(order.orderId, result.error);
-        const msg = result.error.message || "Payment failed at the gateway.";
-        setError(`${msg}${result.error.code ? ` [${result.error.code}]` : ""}`);
-        setBusyTier(null);
-        setPhoneBusy(false);
-        return;
-      }
-      // Widget finished — confirm server-to-server, then upgrade.
-      try {
-        await apiPost("/api/billing/verify", { tier: tierId, orderId: order.orderId });
-        finishUpgrade(tierId);
-      } catch (e: any) {
-        setError(e.message);
-        setBusyTier(null);
-      } finally {
-        setPhoneBusy(false);
-      }
+      const order = await apiPost("/api/billing/checkout", { tier: tierId });
+      if (!order.checkoutUrl) throw new Error("Checkout did not return a payment link.");
+      window.location.href = order.checkoutUrl;
     } catch (e: any) {
-      if (e.data?.code === "phone_required") {
-        setError(e.message);
-      } else {
-        setError(e.message || "Upgrade failed.");
-        setPhoneTier(null);
-      }
+      setError(e.message || "Upgrade failed.");
       setBusyTier(null);
-      setPhoneBusy(false);
     }
   }
 
@@ -136,7 +62,7 @@ export default function PricingPage() {
         <h1 className="font-display text-4xl uppercase leading-none sm:text-5xl">
           Free to audit.<br />Cheap to <span className="hl">ace.</span>
         </h1>
-        <p className="mt-2 font-medium text-ink-light">Upgrade anytime. Billed monthly via Cashfree.</p>
+        <p className="mt-2 font-medium text-ink-light">Upgrade anytime. Secure checkout via Dodo Payments.</p>
       </div>
 
       {error && (
@@ -213,41 +139,6 @@ export default function PricingPage() {
           );
         })}
       </div>
-
-      <Modal
-        open={!!phoneTier}
-        onClose={() => (!phoneBusy ? setPhoneTier(null) : null)}
-        title={`Pay for ${phoneTier ? TIERS[phoneTier].name : ""}`}
-      >
-        <p className="text-sm font-medium text-ink-light">
-          Cashfree needs your mobile number for the payment. UPI, cards & netbanking accepted.
-        </p>
-        <div className="mt-3 flex items-center gap-2">
-          <span className="rounded-xl border-2 border-ink bg-paper-200 px-3 py-2.5 font-display text-sm">+91</span>
-          <input
-            className="input"
-            inputMode="numeric"
-            maxLength={10}
-            placeholder="10-digit mobile"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-          />
-        </div>
-        {phoneTier && (
-          <p className="font-display mt-3 text-2xl">
-            ₹{TIERS[phoneTier].priceInr}
-            <span className="text-base font-normal text-ink-light">/mo</span>
-          </p>
-        )}
-        <div className="mt-4 flex gap-2">
-          <button className="btn-ghost flex-1" onClick={() => setPhoneTier(null)} disabled={phoneBusy}>
-            Cancel
-          </button>
-          <button className="btn-primary flex-1" onClick={payWithPhone} disabled={phoneBusy}>
-            {phoneBusy ? <Spinner className="h-4 w-4" /> : "Pay →"}
-          </button>
-        </div>
-      </Modal>
 
       <Modal open={!!success} onClose={() => setSuccess(null)} title="You're upgraded!">
         <div className="mx-auto w-fit">

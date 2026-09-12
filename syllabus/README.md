@@ -117,20 +117,19 @@ class_year, intent/"Prerequisites", prompts, discovery prefs, privacy flags) ·
 `swipes` · `matches` · `messages` · `subscriptions` · `events` + `event_rsvps` ·
 `reports` · `blocks`.
 
-## Subscriptions (Cashfree)
+## Subscriptions (Dodo Payments)
 
 Tiers: **Audit** (free, 15 swipes/day) · **Enrolled** ₹599/mo · **Honor Roll**
 ₹1299/mo · **Extra Credit** ₹2399/mo.
 
-- **Keys:** from https://test.cashfree.com (sandbox) or
-  https://merchant.cashfree.com (production) → Developers → API Keys.
-- **Env:** `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`,
-  `CASHFREE_ENV=sandbox|production`. Without keys, checkout fails closed with
-  a clear message (no silent free upgrades).
-- Flow: Cashfree JS SDK popup → server confirms order status via Cashfree API
-  → tier activates. `POST /api/billing/webhook` is the backup path.
-- Cashfree requires the payer's mobile number — collected once at checkout
-  and saved on the account.
+- **Dashboard setup:** create 3 ONE-TIME products (599 / 1299 / 2399 INR) at
+  app.dodopayments.com → copy their product IDs. API key: Developer > API.
+- **Env:** `DODO_PAYMENTS_API_KEY`, `DODO_ENV=test|live`,
+  `DODO_PRODUCT_ENROLLED/HONOR_ROLL/EXTRA_CREDIT`, `DODO_WEBHOOK_SECRET`.
+  Without keys/products, checkout fails closed with a clear message.
+- Flow: plan → server creates Checkout Session → browser redirects to Dodo's
+  hosted checkout → returns to `/billing/return` → server confirms session
+  status via Dodo API → tier activates. `POST /api/billing/webhook` is backup.
 
 ## Production notes
 

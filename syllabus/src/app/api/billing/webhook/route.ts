@@ -1,76 +1,109 @@
+import { headers } from "next/headers";
+import { Webhook } from "standardwebhooks";
 import { prisma } from "@/lib/db";
-import { json, apiError } from "@/lib/api";
-import { verifyWebhookSignature } from "@/lib/cashfree";
+import { json } from "@/lib/api";
+import { webhookSecret } from "@/lib/dodo";
 
-// Cashfree PG webhooks (backup path — the widget + /verify is primary).
-// Events: PAYMENT_SUCCESS_WEBHOOK / PAYMENT_FAILED_WEBHOOK / PAYMENT_USER_DROPPED_WEBHOOK.
+// Dodo PG webhooks (backup path — /billing/return + /verify is primary).
+// Spec: Standard Webhooks (webhook-id / webhook-signature / webhook-timestamp).
+// Events: payment.succeeded / payment.failed / payment.cancelled.
 export async function POST(req: Request) {
-  const raw = await req.text();
-  const timestamp = req.headers.get("x-webhook-timestamp") ?? "";
-  const signature = req.headers.get("x-webhook-signature") ?? "";
+  const secret = webhookSecret();
+  if (!secret) return json({ received: true, verified: false });
 
-  if (!verifyWebhookSignature(raw, timestamp, signature)) {
-    return apiError.badRequest("Invalid webhook signature.");
-  }
-
-  let event: any;
+  let payload: any = null;
   try {
-    event = JSON.parse(raw);
+    const raw = await req.text();
+    const h = headers();
+    await new Webhook(secret).verify(raw, {
+      "webhook-id": h.get("webhook-id") ?? "",
+      "webhook-signature": h.get("webhook-signature") ?? "",
+      "webhook-timestamp": h.get("webhook-timestamp") ?? "",
+    });
+    payload = JSON.parse(raw);
   } catch {
-    return apiError.badRequest("Invalid payload.");
+    return json({ received: false }, { status: 400 });
   }
 
-  const type = event?.type as string | undefined;
-  const orderId = event?.data?.order?.order_id as string | undefined;
-  if (!orderId) return json({ received: true });
+  try {
+    const type = payload?.type as string | undefined;
+    const data = payload?.data ?? {};
+    // Payment id always present; session/metadata shapes vary — match flexibly.
+    const paymentId =
+      data?.payment_id ?? data?.payment?.payment_id ?? data?.id ?? null;
+    const meta = data?.metadata ?? data?.payment?.metadata ?? {};
+    const sessionId =
+      data?.session_id ?? data?.checkout_session_id ?? meta?.session_id ?? null;
 
-  const payment = await prisma.payment.findUnique({ where: { orderId } }).catch(() => null);
-  if (!payment) return json({ received: true });
+    if (type === "payment.succeeded") {
+      const row =
+        (sessionId
+          ? await prisma.payment.findUnique({ where: { orderId: String(sessionId) } }).catch(() => null)
+          : null) ??
+        (paymentId
+          ? await prisma.payment.findFirst({ where: { paymentId: String(paymentId) } }).catch(() => null)
+          : null);
 
-  // Idempotency on Cashfree's event id.
-  const eventId = typeof event?.event_time === "string" ? `${type}:${event.event_time}:${orderId}` : null;
-  if (type === "PAYMENT_SUCCESS_WEBHOOK") {
-    const cfPaymentId = event?.data?.payment?.cf_payment_id;
-    await prisma.payment
-      .update({
-        where: { orderId },
-        data: {
-          status: "captured",
-          paymentId: typeof cfPaymentId === "string" ? cfPaymentId : payment.paymentId,
-          webhookEventId: eventId,
-          rawPayload: raw.slice(0, 20000),
-        },
-      })
-      .catch(() => null);
-    const periodEnd = new Date();
-    periodEnd.setDate(periodEnd.getDate() + 30);
-    await prisma.subscription
-      .upsert({
-        where: { userId: payment.userId },
-        create: {
-          userId: payment.userId,
-          tier: payment.tier,
-          status: "active",
-          provider: "cashfree",
-          providerSubscriptionId: typeof cfPaymentId === "string" ? cfPaymentId : null,
-          currentPeriodEnd: periodEnd,
-        },
-        update: {
-          tier: payment.tier,
-          status: "active",
-          provider: "cashfree",
-          providerSubscriptionId: typeof cfPaymentId === "string" ? cfPaymentId : null,
-          currentPeriodEnd: periodEnd,
-        },
-      })
-      .catch(() => null);
-  } else if (type === "PAYMENT_FAILED_WEBHOOK" || type === "PAYMENT_USER_DROPPED_WEBHOOK") {
-    await prisma.payment
-      .update({
-        where: { orderId },
-        data: { status: "failed", webhookEventId: eventId, rawPayload: raw.slice(0, 20000) },
-      })
-      .catch(() => null);
+      // Fallback: metadata pinned at session creation.
+      const userId = typeof meta?.userId === "string" ? meta.userId : null;
+      const tier = typeof meta?.tier === "string" ? meta.tier : null;
+      const target =
+        row ??
+        (userId && tier
+          ? await prisma.payment.findFirst({
+              where: { userId, tier, status: "created" },
+              orderBy: { createdAt: "desc" },
+            }).catch(() => null)
+          : null);
+      if (!target) return json({ received: true });
+
+      const periodEnd = new Date();
+      periodEnd.setDate(periodEnd.getDate() + 30);
+      await prisma.payment
+        .update({
+          where: { id: target.id },
+          data: {
+            status: "captured",
+            paymentId: paymentId ? String(paymentId) : target.paymentId,
+            rawPayload: JSON.stringify(payload).slice(0, 20000),
+          },
+        })
+        .catch(() => null);
+      await prisma.subscription
+        .upsert({
+          where: { userId: target.userId },
+          create: {
+            userId: target.userId,
+            tier: target.tier,
+            status: "active",
+            provider: "dodo",
+            providerSubscriptionId: paymentId ? String(paymentId) : null,
+            currentPeriodEnd: periodEnd,
+          },
+          update: {
+            tier: target.tier,
+            status: "active",
+            provider: "dodo",
+            providerSubscriptionId: paymentId ? String(paymentId) : null,
+            currentPeriodEnd: periodEnd,
+          },
+        })
+        .catch(() => null);
+    } else if (type === "payment.failed" || type === "payment.cancelled") {
+      const row = sessionId
+        ? await prisma.payment.findUnique({ where: { orderId: String(sessionId) } }).catch(() => null)
+        : null;
+      if (row && row.status === "created") {
+        await prisma.payment
+          .update({
+            where: { id: row.id },
+            data: { status: "failed", rawPayload: JSON.stringify(payload).slice(0, 20000) },
+          })
+          .catch(() => null);
+      }
+    }
+  } catch {
+    // never crash webhooks; Dodo retries on non-2xx
   }
 
   return json({ received: true });

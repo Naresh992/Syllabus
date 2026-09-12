@@ -1,14 +1,20 @@
-import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
-import { createTierOrder, normalizePhone } from "@/lib/cashfree";
-import { getTier, isPaidTier, type TierId } from "@/lib/tiers";
+import { createCheckoutSession } from "@/lib/dodo";
+import { isPaidTier, type TierId } from "@/lib/tiers";
+import { z } from "zod";
 
-const schema = z.object({
-  tier: z.string(),
-  phone: z.string().optional().default(""),
-});
+const schema = z.object({ tier: z.string() });
+
+function siteOrigin(req: Request): string {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+  if (envUrl) return envUrl.replace(/\/$/, "");
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const host =
+    req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "syllabus-iota.vercel.app";
+  return `${proto}://${host}`;
+}
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -19,52 +25,35 @@ export async function POST(req: Request) {
     return apiError.badRequest("Pick a valid plan to upgrade to.");
   }
   const tierId = parsed.data.tier as TierId;
-  const tier = getTier(tierId);
-
-  // Cashfree requires a mobile number — reuse the saved one if present.
-  const phone = normalizePhone(parsed.data.phone) ?? null;
-  const savedPhone = await prisma.user
-    .findUnique({ where: { id: user.id }, select: { phone: true } })
-    .then((u) => normalizePhone(u?.phone ?? ""))
-    .catch(() => null);
-  const finalPhone = phone ?? savedPhone;
-  if (!finalPhone) {
-    return apiError.badRequest("Add your 10-digit mobile number to pay.", {
-      code: "phone_required",
-    });
-  }
 
   try {
-    const order = await createTierOrder(
+    const session = await createCheckoutSession(
       tierId,
       { id: user.id, email: user.email, name: user.name },
-      finalPhone
+      `${siteOrigin(req)}/billing/return`
     );
-    await prisma.$transaction([
-      prisma.user.update({ where: { id: user.id }, data: { phone: finalPhone } }),
-      prisma.payment.create({
-        data: {
-          userId: user.id,
-          tier: tierId,
-          orderId: order.orderId,
-          amount: order.amount,
-          currency: order.currency,
-          status: "created",
-        },
-      }),
-    ]);
+
+    await prisma.payment.create({
+      data: {
+        userId: user.id,
+        tier: tierId,
+        orderId: session.orderId,
+        amount: session.amount,
+        currency: session.currency,
+        status: "created",
+      },
+    });
+
     return json({
-      orderId: order.orderId,
-      amount: order.amount,
-      amountInr: order.amountInr,
-      currency: order.currency,
-      paymentSessionId: order.paymentSessionId,
-      environment: order.environment,
+      orderId: session.orderId,
+      checkoutUrl: session.checkoutUrl,
+      amount: session.amount,
+      amountInr: session.amountInr,
+      currency: session.currency,
+      environment: session.environment,
       tier: tierId,
-      tierName: tier.name,
-      prefill: { name: user.name, email: user.email, phone: finalPhone },
     });
   } catch (e: any) {
-    return apiError.server("Checkout is unavailable right now. Payments are not configured yet.");
+    return apiError.server(e?.message || "Checkout is unavailable right now.");
   }
 }

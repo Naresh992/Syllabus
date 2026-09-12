@@ -15,14 +15,17 @@ import { getTier, type TierId } from "./tiers";
 // -----------------------------------------------------------------------------
 
 const API_KEY = process.env.DODO_PAYMENTS_API_KEY || "";
-const WEBHOOK_SECRET = process.env.DODO_WEBHOOK_SECRET || "";
+// Accept both secret names (dashboard default is DODO_PAYMENTS_WEBHOOK_SECRET).
+const WEBHOOK_SECRET =
+  process.env.DODO_WEBHOOK_SECRET || process.env.DODO_PAYMENTS_WEBHOOK_SECRET || "";
 export const DODO_ENV = process.env.DODO_ENV === "live" ? "live" : "test";
 
+// Product IDs: env override wins, dashboard-confirmed IDs as fallback.
 const PRODUCT_IDS: Record<TierId, string> = {
   audit: "",
-  enrolled: process.env.DODO_PRODUCT_ENROLLED || "",
-  honor_roll: process.env.DODO_PRODUCT_HONOR_ROLL || "",
-  extra_credit: process.env.DODO_PRODUCT_EXTRA_CREDIT || "",
+  enrolled: process.env.DODO_PRODUCT_ENROLLED || "pdt_0NnRgr6KU96Dtq1HxuhJCH",
+  honor_roll: process.env.DODO_PRODUCT_HONOR_ROLL || "pdt_0NnRgr6qDjhiHXbHWaYR5",
+  extra_credit: process.env.DODO_PRODUCT_EXTRA_CREDIT || "pdt_0NnRgr8AX0BBSWAHdCw85",
 };
 
 function base(): string {
@@ -37,8 +40,8 @@ export function productIdFor(tier: TierId): string {
   return PRODUCT_IDS[tier] ?? "";
 }
 
-async function api<T>(path: string, method: "GET" | "POST", body?: unknown): Promise<T> {
-  const res = await fetch(`${base()}${path}`, {
+async function call<T>(host: string, path: string, method: "GET" | "POST", body?: unknown): Promise<T> {
+  const res = await fetch(`${host}${path}`, {
     method,
     headers: {
       accept: "application/json",
@@ -51,9 +54,31 @@ async function api<T>(path: string, method: "GET" | "POST", body?: unknown): Pro
   if (!res.ok) {
     const msg =
       (data as any)?.message || (data as any)?.error || `Dodo error ${res.status}`;
-    throw new Error(typeof msg === "string" ? msg : "Dodo request failed");
+    const err = new Error(typeof msg === "string" ? msg : "Dodo request failed") as Error & {
+      dodoStatus?: number;
+    };
+    err.dodoStatus = res.status;
+    throw err;
   }
   return data as T;
+}
+
+// Test/live are separate merchants — if the key doesn't authenticate on the
+// configured host, retry once on the other before failing.
+async function api<T>(path: string, method: "GET" | "POST", body?: unknown): Promise<T> {
+  const primary = base();
+  try {
+    return await call<T>(primary, path, method, body);
+  } catch (e: any) {
+    if (e?.dodoStatus === 401 || e?.dodoStatus === 403) {
+      const fallback =
+        primary === "https://live.dodopayments.com"
+          ? "https://test.dodopayments.com"
+          : "https://live.dodopayments.com";
+      return call<T>(fallback, path, method, body);
+    }
+    throw e;
+  }
 }
 
 export type CreatedSession = {

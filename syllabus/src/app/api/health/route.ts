@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { json } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 // Public deployment diagnostic. Reports ONLY whether env vars are present
 // (never values) plus a DB ping result with any credentials redacted.
 function redact(msg: string): string {

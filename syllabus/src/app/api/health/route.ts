@@ -13,7 +13,8 @@ export async function GET() {
   const env = {
     DATABASE_URL: !!process.env.DATABASE_URL,
     SESSION_SECRET: !!process.env.SESSION_SECRET,
-    RAZORPAY_KEY_ID: !!process.env.RAZORPAY_KEY_ID,
+    DODO_PAYMENTS_API_KEY: !!process.env.DODO_PAYMENTS_API_KEY,
+    DODO_PAYMENTS_WEBHOOK_SECRET: !!process.env.DODO_PAYMENTS_WEBHOOK_SECRET,
   };
 
   let db = "skipped";

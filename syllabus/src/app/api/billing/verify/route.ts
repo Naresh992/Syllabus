@@ -2,15 +2,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
-import { getOrderStatus } from "@/lib/cashfree";
+import { dodo } from "@/lib/dodo";
 import { getTier, isPaidTier, type TierId } from "@/lib/tiers";
 
 // Confirms an order by asking Cashfree server-to-server (no client signatures
 // to forge). Called by the browser after the Cashfree widget finishes.
-const schema = z.object({
-  orderId: z.string().min(1).max(100),
-  tier: z.string(),
-});
+const schema = z.object({ orderId: z.string().min(1).max(100), tier: z.string() });
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -36,22 +33,14 @@ export async function POST(req: Request) {
     return json({ ok: true, tier, tierName: tierInfo.name, currentPeriodEnd: new Date() });
   }
 
+  if (!dodo) return apiError.server("Dodo Payments is not configured.");
   let status;
   try {
-    status = await getOrderStatus(orderId);
+    status = await dodo.checkoutSessions.retrieve(orderId);
   } catch {
     return apiError.server("Could not confirm the payment. Try again in a moment.");
   }
-  if (status.amountInr !== tierInfo.priceInr) {
-    return apiError.badRequest("Paid amount does not match the plan.");
-  }
-  if (status.orderStatus !== "PAID") {
-    return apiError.badRequest(
-      status.orderStatus === "ACTIVE"
-        ? "Payment is still pending at the gateway."
-        : "Payment was not completed."
-    );
-  }
+  if (status.payment_status !== "succeeded") return apiError.badRequest("Payment was not completed.");
 
   const periodEnd = new Date();
   periodEnd.setDate(periodEnd.getDate() + 30);
@@ -59,7 +48,7 @@ export async function POST(req: Request) {
   try {
     await prisma.payment.update({
       where: { orderId },
-      data: { status: "captured", paymentId: status.cfPaymentId, rawPayload: null },
+      data: { status: "captured", paymentId: status.payment_id, rawPayload: null },
     });
     await prisma.subscription.upsert({
       where: { userId: user.id },
@@ -68,14 +57,14 @@ export async function POST(req: Request) {
         tier,
         status: "active",
         provider: "cashfree",
-        providerSubscriptionId: status.cfPaymentId,
+        providerSubscriptionId: status.payment_id,
         currentPeriodEnd: periodEnd,
       },
       update: {
         tier,
         status: "active",
         provider: "cashfree",
-        providerSubscriptionId: status.cfPaymentId,
+        providerSubscriptionId: status.payment_id,
         currentPeriodEnd: periodEnd,
       },
     });

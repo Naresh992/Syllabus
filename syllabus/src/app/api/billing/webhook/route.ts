@@ -1,77 +1,41 @@
 import { prisma } from "@/lib/db";
 import { json, apiError } from "@/lib/api";
-import { verifyWebhookSignature } from "@/lib/cashfree";
+import { verifyDodoWebhook } from "@/lib/dodo";
 
-// Cashfree PG webhooks (backup path — the widget + /verify is primary).
-// Events: PAYMENT_SUCCESS_WEBHOOK / PAYMENT_FAILED_WEBHOOK / PAYMENT_USER_DROPPED_WEBHOOK.
 export async function POST(req: Request) {
   const raw = await req.text();
-  const timestamp = req.headers.get("x-webhook-timestamp") ?? "";
-  const signature = req.headers.get("x-webhook-signature") ?? "";
-
-  if (!verifyWebhookSignature(raw, timestamp, signature)) {
-    return apiError.badRequest("Invalid webhook signature.");
-  }
-
+  if (!verifyDodoWebhook(raw, req.headers)) return apiError.badRequest("Invalid webhook signature.");
   let event: any;
-  try {
-    event = JSON.parse(raw);
-  } catch {
-    return apiError.badRequest("Invalid payload.");
-  }
+  try { event = JSON.parse(raw); } catch { return apiError.badRequest("Invalid payload."); }
 
-  const type = event?.type as string | undefined;
-  const orderId = event?.data?.order?.order_id as string | undefined;
-  if (!orderId) return json({ received: true });
+  const data = event?.data ?? {};
+  const metadata = data?.metadata ?? {};
+  const orderId = typeof data?.checkout_session_id === "string" ? data.checkout_session_id : typeof data?.payment_id === "string" ? data.payment_id : null;
+  const userId = typeof metadata.userId === "string" ? metadata.userId : null;
+  const tier = typeof metadata.tier === "string" ? metadata.tier : null;
+  if (!orderId || !userId || !tier) return json({ received: true });
 
   const payment = await prisma.payment.findUnique({ where: { orderId } }).catch(() => null);
-  if (!payment) return json({ received: true });
+  if (!payment || payment.userId !== userId || payment.tier !== tier) return json({ received: true });
+  if (payment.webhookEventId === event.id) return json({ received: true });
 
-  // Idempotency on Cashfree's event id.
-  const eventId = typeof event?.event_time === "string" ? `${type}:${event.event_time}:${orderId}` : null;
-  if (type === "PAYMENT_SUCCESS_WEBHOOK") {
-    const cfPaymentId = event?.data?.payment?.cf_payment_id;
-    await prisma.payment
-      .update({
-        where: { orderId },
-        data: {
-          status: "captured",
-          paymentId: typeof cfPaymentId === "string" ? cfPaymentId : payment.paymentId,
-          webhookEventId: eventId,
-          rawPayload: raw.slice(0, 20000),
-        },
-      })
-      .catch(() => null);
+  const succeeded = event.type === "payment.succeeded" || event.type === "subscription.active" || event.type === "subscription.renewed";
+  const failed = event.type === "payment.failed" || event.type === "payment.cancelled";
+  const status = succeeded ? "captured" : failed ? "failed" : null;
+  if (!status) return json({ received: true });
+
+  await prisma.payment.update({
+    where: { orderId },
+    data: { status, paymentId: typeof data.payment_id === "string" ? data.payment_id : payment.paymentId, webhookEventId: typeof event.id === "string" ? event.id : undefined, rawPayload: raw.slice(0, 20000) },
+  });
+  if (succeeded) {
     const periodEnd = new Date();
     periodEnd.setDate(periodEnd.getDate() + 30);
-    await prisma.subscription
-      .upsert({
-        where: { userId: payment.userId },
-        create: {
-          userId: payment.userId,
-          tier: payment.tier,
-          status: "active",
-          provider: "cashfree",
-          providerSubscriptionId: typeof cfPaymentId === "string" ? cfPaymentId : null,
-          currentPeriodEnd: periodEnd,
-        },
-        update: {
-          tier: payment.tier,
-          status: "active",
-          provider: "cashfree",
-          providerSubscriptionId: typeof cfPaymentId === "string" ? cfPaymentId : null,
-          currentPeriodEnd: periodEnd,
-        },
-      })
-      .catch(() => null);
-  } else if (type === "PAYMENT_FAILED_WEBHOOK" || type === "PAYMENT_USER_DROPPED_WEBHOOK") {
-    await prisma.payment
-      .update({
-        where: { orderId },
-        data: { status: "failed", webhookEventId: eventId, rawPayload: raw.slice(0, 20000) },
-      })
-      .catch(() => null);
+    await prisma.subscription.upsert({
+      where: { userId },
+      create: { userId, tier, status: "active", provider: "dodo", providerSubscriptionId: typeof data.subscription_id === "string" ? data.subscription_id : data.payment_id, currentPeriodEnd: periodEnd },
+      update: { tier, status: "active", provider: "dodo", providerSubscriptionId: typeof data.subscription_id === "string" ? data.subscription_id : data.payment_id, currentPeriodEnd: periodEnd },
+    });
   }
-
   return json({ received: true });
 }

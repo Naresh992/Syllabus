@@ -9,9 +9,9 @@ const webhookSecret = process.env.DODO_PAYMENTS_WEBHOOK_SECRET ?? "";
 export const dodo = apiKey ? new DodoPayments({ bearerToken: apiKey }) : null;
 
 const productIds: Partial<Record<TierId, string>> = {
-  enrolled: process.env.DODO_PRODUCT_ID_ENROLLED,
-  honor_roll: process.env.DODO_PRODUCT_ID_HONOR_ROLL,
-  extra_credit: process.env.DODO_PRODUCT_ID_EXTRA_CREDIT,
+  enrolled: process.env.DODO_PRODUCT_ID_ENROLLED ?? "pdt_0NnRgr6KU96Dtq1HxuhJCH",
+  honor_roll: process.env.DODO_PRODUCT_ID_HONOR_ROLL ?? "pdt_0NnRgr6qDjhiHXbHWaYR5",
+  extra_credit: process.env.DODO_PRODUCT_ID_EXTRA_CREDIT ?? "pdt_0NnRgr8AX0BBSWAHdCw85",
 };
 
 export function getDodoProductId(tierId: TierId) {

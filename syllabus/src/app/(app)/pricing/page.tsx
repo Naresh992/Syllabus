@@ -74,6 +74,24 @@ export default function PricingPage() {
         },
         modal: { ondismiss: () => setBusyTier(null) },
       });
+      rzp.on("payment.failed", async (resp: any) => {
+        const err = resp?.error ?? {};
+        const reason = err.description || err.reason || "Payment failed at the gateway.";
+        try {
+          await apiPost("/api/billing/failure", {
+            orderId: order.orderId,
+            code: err.code ?? null,
+            description: err.description ?? null,
+            reason: err.reason ?? null,
+            source: err.source ?? null,
+            step: err.step ?? null,
+          });
+        } catch {
+          /* reporting must never break the UI */
+        }
+        setError(`${reason}${err.code ? ` [${err.code}]` : ""}`);
+        setBusyTier(null);
+      });
       rzp.open();
     } catch (e: any) {
       setError(e.message || "Upgrade failed.");

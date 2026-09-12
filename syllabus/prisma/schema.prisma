@@ -39,6 +39,7 @@ model User {
   college            String? // free-text college/university (global signup)
   city               String?
   country            String?
+  phone              String? // mobile number, collected at checkout (required by Cashfree)
   verificationStatus String   @default("pending") // pending | approved | rejected
   isAdmin            Boolean  @default(false)
   createdAt          DateTime @default(now())

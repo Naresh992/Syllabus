@@ -117,17 +117,20 @@ class_year, intent/"Prerequisites", prompts, discovery prefs, privacy flags) ·
 `swipes` · `matches` · `messages` · `subscriptions` · `events` + `event_rsvps` ·
 `reports` · `blocks`.
 
-## Subscriptions (Razorpay)
+## Subscriptions (Cashfree)
 
 Tiers: **Audit** (free, 15 swipes/day) · **Enrolled** ₹599/mo · **Honor Roll**
 ₹1299/mo · **Extra Credit** ₹2399/mo.
 
-- **No keys?** The paywall runs in **mock mode** — checkout + upgrades complete
-  instantly with no charge, so the full flow is demoable offline.
-- **Real payments:** add test keys to `.env` (`RAZORPAY_KEY_ID`,
-  `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, plus
-  `RAZORPAY_WEBHOOK_SECRET`) and live Razorpay Checkout + signature verification
-  take over automatically. Point the webhook at `/api/billing/webhook`.
+- **Keys:** from https://test.cashfree.com (sandbox) or
+  https://merchant.cashfree.com (production) → Developers → API Keys.
+- **Env:** `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY`,
+  `CASHFREE_ENV=sandbox|production`. Without keys, checkout fails closed with
+  a clear message (no silent free upgrades).
+- Flow: Cashfree JS SDK popup → server confirms order status via Cashfree API
+  → tier activates. `POST /api/billing/webhook` is the backup path.
+- Cashfree requires the payer's mobile number — collected once at checkout
+  and saved on the account.
 
 ## Production notes
 

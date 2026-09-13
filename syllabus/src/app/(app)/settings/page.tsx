@@ -290,7 +290,7 @@ export default function SettingsPage() {
             <label className="mt-3 flex items-center justify-between">
               <span className="text-sm">
                 Incognito — hide me from discovery
-                {!tierInfo?.incognito && <span className="block text-xs text-ink-faint">"Independent Study" is an Extra Credit perk</span>}
+                {!tierInfo?.incognito && <span className="block text-xs text-ink-faint">&quot;Independent Study&quot; is an Extra Credit perk</span>}
               </span>
               <Toggle checked={!!profile.incognito} disabled={!tierInfo?.incognito} onChange={(v) => set("incognito", v)} />
             </label>

@@ -5,7 +5,7 @@ Enroll with your `.edu` email → get ID-verified → browse **The Syllabus** �
 build **My Roster** → chat in **Office Hours** → meet IRL at **Study Group** events.
 
 **Stack:** Next.js 14 (App Router, TypeScript) · Tailwind CSS · Prisma ·
-PostgreSQL (Neon) · Razorpay (subscriptions)
+PostgreSQL (Neon) · Dodo Payments (paid plans)
 
 ## Quickstart
 
@@ -35,7 +35,7 @@ npm run dev            # → http://localhost:3000
    `syllabus` → add Environment Variables:
    - `DATABASE_URL` = the Neon connection string
    - `SESSION_SECRET` = a long random string (`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`)
-   - (leave Razorpay vars empty for mock-mode payments)
+   - `DODO_PAYMENTS_API_KEY`, `DODO_ENV`, `DODO_WEBHOOK_SECRET`, and paid-tier product IDs
    → **Deploy**. That's it — HTTPS is automatic, so secure cookies just work.
 
 ## Going live (real users)
@@ -48,9 +48,8 @@ npm run dev            # → http://localhost:3000
   in as admin) and store it in a password manager.
 - [ ] **Rotate the Neon password** if it was ever shared (Neon dashboard →
   connection details → reset), then update Vercel's `DATABASE_URL` + redeploy.
-- [ ] **Razorpay:** mock mode lets anyone "upgrade" for free. Add live keys
-  (`RAZORPAY_KEY_ID/SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, webhook secret)
-  before charging real users — this requires a Razorpay business account + KYC.
+  - [ ] **Dodo Payments:** configure the live API key, webhook secret, environment,
+  and the three paid-tier product IDs before charging real users.
 - [ ] **Moderation:** the admin desk covers ID review; reported profiles land
   in the `reports` table (review via `npx prisma studio` until a UI exists).
 - [ ] Know the MVP limits: placeholder face-match (integrate Persona/Onfido
@@ -94,7 +93,7 @@ src/
       roster/                My Roster (matches)
       office-hours/          inbox + real-time thread (2.5s polling)
       study-group/           events + RSVP
-      pricing/               paywall + Razorpay checkout
+      pricing/               paywall + Dodo Payments checkout
       settings/              profile editor, discovery prefs, privacy, blocks
       admin/                 verification desk (approve/reject)
     api/                     REST routes (auth, verification, admin, discovery,

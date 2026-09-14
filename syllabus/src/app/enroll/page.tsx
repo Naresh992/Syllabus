@@ -426,7 +426,7 @@ export default function EnrollPage() {
         )}
 
         {stage === "prerequisites" && (
-          <StepCard title="Set your Prerequisites" subtitle="What are you looking for? Pick one — this helps us match you.">
+          <StepCard title="Set your Prerequisites" subtitle="What kind of connection are you looking for? Pick one — this helps us match you.">
             <div className="space-y-5">
               <div className="flex flex-wrap gap-2">
                 {INTENTS.map((it) => (
@@ -438,8 +438,8 @@ export default function EnrollPage() {
 
               <label className="flex items-center justify-between rounded-xl border border-ink/10 p-3">
                 <span>
-                  <span className="font-semibold">Open to Hookup Culture</span>
-                  <span className="block text-xs text-ink-faint">Off by default. Opt in to see & be seen for casual connections.</span>
+<span className="font-semibold">Open to casual connections</span>
+                   <span className="block text-xs text-ink-faint">Off by default. Opt in to be seen by people looking for more than just studying.</span>
                 </span>
                 <Toggle checked={hookupOptIn} onChange={setHookupOptIn} />
               </label>

@@ -123,7 +123,7 @@ export default function ThreadPage({ params }: { params: { matchId: string } }) 
       <div ref={scrollRef} className="scroll-thin ruled flex-1 space-y-2 overflow-y-auto py-4">
         {messages.length === 0 && (
           <p className="py-10 text-center text-sm text-ink-faint">
-            You matched with {other.name}. Break the ice!
+            You connected with {other.name}. Break the ice!
           </p>
         )}
         {messages.map((m) => (

@@ -33,7 +33,7 @@ export const TIERS: Record<TierId, Tier> = {
     priceInr: 0,
     swipesPerDay: 15,
     superLikesPerWeek: 0,
-    perks: ["15 swipes / day", "Basic filters", "Match & message"],
+    perks: ["15 swipes / day", "Basic filters", "Message & connect"],
     seeWhoLikedYou: false,
     interCollege: false,
     advancedFilters: false,

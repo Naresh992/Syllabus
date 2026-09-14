@@ -65,7 +65,7 @@ export default function LandingPage() {
       <section className="relative mx-auto grid max-w-6xl items-center gap-10 px-5 pb-14 pt-6 md:grid-cols-[1.1fr_0.9fr] md:pt-10">
         <div className="relative z-10">
           <p className="font-hand -rotate-2 text-3xl text-redpen">
-            ★ the dating app for real students ★
+            ★ verified-only platform for college students ★
           </p>
           <h1 className="font-display mt-3 text-[13vw] uppercase leading-[0.92] tracking-tight sm:text-6xl md:text-7xl lg:text-[5.2rem]">
             Add someone to your <span className="hl">syllabus</span>
@@ -90,7 +90,7 @@ export default function LandingPage() {
         <div className="relative mx-auto hidden h-[440px] w-full max-w-sm md:block">
           <SampleCard seed="diego-santos-1" name="Diego" age={22} major="Mech. Eng." intent="Open to anything" rotate="-rotate-6" className="left-0 top-12" />
           <SampleCard seed="jade-wong-1" name="Jade" age={21} major="Fine Arts" intent="New friends" rotate="rotate-3" className="right-0 top-2" floatDelay="1.2s" />
-          <SampleCard seed="priya-nair-1" name="Priya" age={22} major="Neuroscience" intent="Casual dating" rotate="-rotate-1" className="left-1/2 top-40 -translate-x-1/2" floatDelay="2.4s" />
+              <SampleCard seed="priya-nair-1" name="Priya" age={22} major="Neuroscience" intent="New friends" rotate="-rotate-1" className="left-1/2 top-40 -translate-x-1/2" floatDelay="2.4s" />
           <div className="absolute -left-4 top-2 animate-floaty">
             <Seal size={104} spin={false} className="-rotate-12">
               100%<br />verified
@@ -117,7 +117,7 @@ export default function LandingPage() {
       <Marquee dark>
         <TickerItem>Add</TickerItem>
         <TickerItem>Drop</TickerItem>
-        <TickerItem>Match</TickerItem>
+        <TickerItem>Connect</TickerItem>
         <TickerItem>Office hours</TickerItem>
         <TickerItem>Study group</TickerItem>
         <TickerItem>Repeat</TickerItem>
@@ -127,14 +127,14 @@ export default function LandingPage() {
       <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16">
         <p className="font-hand text-center text-3xl text-redpen">ok so how does class work?</p>
         <h2 className="font-display mx-auto max-w-2xl text-center text-4xl uppercase leading-none sm:text-5xl">
-          Verification first. <span className="hl">Thirst second.</span>
+          Verification first. <span className="hl">Connections second.</span>
         </h2>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { n: "01", t: "Enroll", d: "Sign up from any college in the world. Upload your student ID + a live selfie.", r: "-rotate-2", c: "bg-marker" },
             { n: "02", t: "Get verified", d: "We confirm you're a real 18+ student before you can browse a single profile.", r: "rotate-1", c: "bg-crimson-600" },
             { n: "03", t: "Hit the Syllabus", d: "Swipe right to ADD, left to DROP. Set your Prerequisites, raise hands.", r: "-rotate-1", c: "bg-forest-600" },
-            { n: "04", t: "Office Hours", d: "Match into your Roster and start chatting. Slide in respectfully.", r: "rotate-2", c: "bg-ink" },
+            { n: "04", t: "Office Hours", d: "          Connect into your Roster and start chatting. Respectfully.", r: "rotate-2", c: "bg-ink" },
           ].map((s) => (
             <div key={s.n} className={`card taped p-6 pt-8 transition-transform hover:rotate-0 hover:scale-[1.03] ${s.r}`}>
               <div className={`inline-block rounded-lg border-2 border-ink px-2 py-0.5 font-display text-sm text-paper-50 ${s.c}`}>
@@ -162,8 +162,8 @@ export default function LandingPage() {
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             {[
               { t: "The Syllabus", d: "Your daily card stack. ADD or DROP classmates who match your vibe.", icon: "syllabus", big: true },
-              { t: "My Roster", d: "Every mutual match in one tidy class list.", icon: "roster" },
-              { t: "Office Hours", d: "Real-time chat with your matches.", icon: "chat" },
+              { t: "My Roster", d: "Every mutual connection in one tidy class list.", icon: "roster" },
+              { t: "Office Hours", d: "Real-time chat with your connections.", icon: "chat" },
               { t: "Study Group", d: "Campus mixers with RSVP lists of verified students. Touch grass, together.", icon: "calendar" },
               { t: "Raise Hand", d: "Super-like someone to jump the queue and get noticed.", icon: "hand" },
               { t: "Class Roster", d: "See exactly who already added you. No more guessing.", icon: "roster" },
@@ -198,8 +198,8 @@ export default function LandingPage() {
               Trust is the <span className="text-marker">whole point</span>
             </h2>
             <p className="mt-4 max-w-md font-medium text-paper-50/70">
-              Dating apps are full of bots and liars. Resyllabus isn&apos;t. Every single profile is a
-              verified, 18+ college student — reviewed <i>before</i> they can ever swipe.
+              Verified-only platforms are full of bots and liars. Resyllabus isn&apos;t. Every single profile is a
+              verified, 18+ college student — reviewed <i>before</i> they can ever see yours.
             </p>
             <Link href="/enroll" className="btn-marker mt-6 -rotate-1">
               Get verified →

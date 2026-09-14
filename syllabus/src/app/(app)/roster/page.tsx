@@ -75,7 +75,7 @@ export default function RosterPage() {
                       {r.lastMessage.content}
                     </>
                   ) : (
-                    <span className="font-hand text-xl text-crimson-600">new match — say hi!</span>
+                    <span className="font-hand text-xl text-crimson-600">new connection — say hi!</span>
                   )}
                 </p>
                 <div className="mt-1">

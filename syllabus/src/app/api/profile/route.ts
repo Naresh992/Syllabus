@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
 import { stringify, parseStringArray, parsePrompts } from "@/lib/json";
-import { ALL_INTENTS, HOOKUP_INTENT, MIN_PHOTOS, MAX_PHOTOS } from "@/lib/constants";
+import { INTENTS, MIN_PHOTOS, MAX_PHOTOS } from "@/lib/constants";
 import { getTier } from "@/lib/tiers";
 
 const promptSchema = z.object({
@@ -16,7 +16,7 @@ const schema = z.object({
   photos: z.array(z.string().min(1)).min(MIN_PHOTOS, `Add at least ${MIN_PHOTOS} photos`).max(MAX_PHOTOS),
   major: z.string().trim().min(1, "Pick your major"),
   classYear: z.string().trim().min(1, "Pick your class year"),
-  intent: z.string().refine((v) => ALL_INTENTS.includes(v), "Pick a valid prerequisite"),
+  intent: z.string().refine((v) => INTENTS.includes(v as typeof INTENTS[number]), "Pick a valid prerequisite"),
   hookupOptIn: z.boolean().default(false),
   prompts: z.array(promptSchema).min(3, "Answer all 3 prompts"),
   ageMin: z.coerce.number().int().min(18).max(100).default(18),
@@ -54,8 +54,7 @@ export async function POST(req: Request) {
   const d = parsed.data;
   if (d.ageMin > d.ageMax) return apiError.badRequest("Age range is invalid.");
 
-  // Hookup Culture is opt-in; keep intent + toggle consistent.
-  const hookupOptIn = d.intent === HOOKUP_INTENT ? true : d.hookupOptIn;
+  const hookupOptIn = d.hookupOptIn;
 
   // Tier gates: inter-college & incognito are paid perks.
   const tier = getTier(user.tier);

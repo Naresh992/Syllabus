@@ -32,14 +32,14 @@ export default function OfficeHoursInbox() {
       <SectionTitle
         eyebrow="the professor will see you now"
         title={<>Office <span className="hl">Hours</span></>}
-        blurb="Chat with your matches in real time."
+        blurb="Chat with your connections in real time."
       />
 
       {roster.length === 0 ? (
         <div className="card taped ruled mt-6 p-10 pt-12 text-center">
           <Doodle name="scribble" className="mx-auto h-10 w-28 text-crimson-600" />
           <h3 className="font-display mt-3 text-xl uppercase">No conversations yet</h3>
-          <p className="font-hand mt-1 text-2xl text-ink-light">match someone first…</p>
+          <p className="font-hand mt-1 text-2xl text-ink-light">connect with someone first…</p>
           <Link href="/syllabus" className="btn-primary mt-4">Open The Syllabus →</Link>
         </div>
       ) : (

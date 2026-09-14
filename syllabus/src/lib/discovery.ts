@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db";
 import { toCard, cardInclude, type CardProfile } from "@/lib/serialize";
 import { getTier } from "@/lib/tiers";
-import { HOOKUP_INTENT } from "@/lib/constants";
 import { parseStringArray } from "@/lib/json";
 
 function subtractYears(date: Date, years: number): Date {

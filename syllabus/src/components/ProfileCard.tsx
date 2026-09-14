@@ -112,7 +112,7 @@ export default function ProfileCard({
           </div>
           <div className="pointer-events-auto mt-2 flex flex-wrap gap-1.5">
             <IntentBadge intent={profile.intent} />
-            {profile.hookupOptIn && profile.intent !== "Hookup Culture" && (
+            {profile.hookupOptIn && (
               <span className="badge bg-paper-50 text-redpen shadow-sticker-sm">Open to hookups</span>
             )}
             {profile.topBadge && <ValedictorianBadge />}

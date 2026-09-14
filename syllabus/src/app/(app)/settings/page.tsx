@@ -6,7 +6,6 @@ import { apiGet, apiPost } from "@/lib/fetcher";
 import { fileToDataUrl } from "@/lib/image-client";
 import {
   INTENTS,
-  ALL_INTENTS,
   MAJORS,
   CLASS_YEARS,
   PROMPT_QUESTIONS,
@@ -224,7 +223,7 @@ export default function SettingsPage() {
             </div>
 
             <label className="mt-4 flex items-center justify-between rounded-xl border border-ink/10 p-3">
-              <span className="text-sm font-semibold">Open to Hookup Culture</span>
+              <span className="text-sm font-semibold">Open to casual connections</span>
               <Toggle checked={!!profile.hookupOptIn} onChange={(v) => set("hookupOptIn", v)} />
             </label>
 
@@ -274,7 +273,7 @@ export default function SettingsPage() {
 
             <label className="label mt-4">Only show these intents (optional)</label>
             <div className="flex flex-wrap gap-2">
-              {ALL_INTENTS.map((it) => (
+              {INTENTS.map((it) => (
                 <Chip key={it} active={(profile.intentFilter ?? []).includes(it)} onClick={() => toggleIntentFilter(it)}>{it}</Chip>
               ))}
             </div>

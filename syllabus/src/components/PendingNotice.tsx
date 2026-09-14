@@ -53,7 +53,7 @@ export default function PendingNotice({
           ) : (
             <>
               We&apos;re confirming you&apos;re a real, enrolled student. Only verified students can
-              browse, match, and message — that&apos;s what keeps Resyllabus trusted.
+              browse and connect with verified students — that keeps Resyllabus trusted.
             </>
           )}
         </p>

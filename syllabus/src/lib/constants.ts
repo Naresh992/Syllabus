@@ -6,25 +6,18 @@ export const TAGLINE = "Add someone to your syllabus.";
 // Relationship intent = "Prerequisites" (required, single-select).
 // `hookup` is opt-in via a separate toggle (off by default).
 export const INTENTS = [
-  "Serious Relationship",
-  "Casual Dating",
-  "Situationship",
   "New Friends",
   "Study Buddy First",
   "Open to Anything",
 ] as const;
 
-export const HOOKUP_INTENT = "Hookup Culture";
-
-export type Intent = (typeof INTENTS)[number] | typeof HOOKUP_INTENT;
-
-export const ALL_INTENTS: string[] = [...INTENTS, HOOKUP_INTENT];
+export type Intent = (typeof INTENTS)[number];
 
 // The 3 required prompt questions users answer while enrolling.
 export const PROMPT_QUESTIONS = [
   "Most unhinged thing I've done on campus is…",
   "You'll find me in the library when…",
-  "My ideal study date is…",
+  "My ideal study partner is…",
   "The class that changed me was…",
   "I'll add you to my syllabus if…",
   "My most controversial campus opinion is…",

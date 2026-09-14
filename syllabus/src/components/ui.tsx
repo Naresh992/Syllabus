@@ -20,13 +20,9 @@ export function LoadingScreen({ label = "Loading…" }: { label?: string }) {
 }
 
 const INTENT_STYLES: Record<string, string> = {
-  "Serious Relationship": "bg-crimson-600 text-paper-50",
-  "Casual Dating": "bg-marker text-ink",
-  Situationship: "bg-purple-600 text-paper-50",
   "New Friends": "bg-forest-600 text-paper-50",
   "Study Buddy First": "bg-sky-500 text-paper-50",
   "Open to Anything": "bg-paper-200 text-ink",
-  "Hookup Culture": "bg-ink text-redpen",
 };
 
 export function IntentBadge({ intent, className }: { intent: string; className?: string }) {

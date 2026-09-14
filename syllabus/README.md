@@ -73,8 +73,8 @@ Before inviting real users, wipe demo data (see "Going live" below).
    swipe/drop a few cards, hit ✋ Raise Hand, open 🧾 Class Roster (locked teaser on free).
 3. **My Roster** (`/roster`) → open Priya → **Office Hours** (`/office-hours/...`) — send a message.
 4. **Study Group** (`/study-group`) — RSVP to the Verrill mixer.
-5. **Pricing** (`/pricing`) — upgrade to Enrolled (demo-mode payment, no real charge),
-   then Class Roster unlocks.
+5. **Pricing** (`/pricing`) — open Dodo hosted checkout for Enrolled,
+   complete payment, then Class Roster unlocks after confirmation.
 6. **Enroll a new student**: sign out → `/enroll` → sign up as `you@verrill.edu`,
    upload any ID photo + selfie, DOB (try a 2015 date to see the 18+ gate),
    build a profile, set Prerequisites → lands in **pending review**.
@@ -118,8 +118,9 @@ class_year, intent/"Prerequisites", prompts, discovery prefs, privacy flags) ·
 
 ## Subscriptions (Dodo Payments)
 
-Tiers: **Audit** (free, 15 swipes/day) · **Enrolled** ₹599/mo · **Honor Roll**
-₹1299/mo · **Extra Credit** ₹2399/mo.
+Tiers: **Audit** (free, 15 swipes/day) · **Enrolled** ₹599 · **Honor Roll**
+₹1299 · **Extra Credit** ₹2399. Pricing and renewal behavior are controlled by the
+corresponding Dodo products.
 
 - **Dashboard setup:** create 3 ONE-TIME products (599 / 1299 / 2399 INR) at
   app.dodopayments.com → copy their product IDs. API key: Developer > API.

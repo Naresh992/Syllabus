@@ -3,8 +3,8 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
 
-// Records a gateway-side payment failure (Razorpay `payment.failed` event)
-// against the order so it can be diagnosed. Never touches tiers.
+// Records a hosted checkout payment failure against the order for diagnosis.
+// It never changes the account tier.
 const schema = z.object({
   orderId: z.string().min(1).max(100),
   code: z.string().max(50).nullable().optional(),

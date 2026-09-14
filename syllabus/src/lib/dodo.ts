@@ -20,6 +20,9 @@ const WEBHOOK_SECRET =
   process.env.DODO_WEBHOOK_SECRET || process.env.DODO_PAYMENTS_WEBHOOK_SECRET || "";
 export const DODO_ENV = process.env.DODO_ENV === "live" ? "live" : "test";
 
+const productionEnvironmentMisconfigured =
+  process.env.NODE_ENV === "production" && DODO_ENV !== "live";
+
 // Product IDs: env override wins, dashboard-confirmed IDs as fallback.
 const PRODUCT_IDS: Record<TierId, string> = {
   audit: "",
@@ -33,7 +36,7 @@ function base(): string {
 }
 
 export function isDodoConfigured(): boolean {
-  return Boolean(API_KEY);
+  return Boolean(API_KEY) && !productionEnvironmentMisconfigured;
 }
 
 export function productIdFor(tier: TierId): string {
@@ -63,22 +66,8 @@ async function call<T>(host: string, path: string, method: "GET" | "POST", body?
   return data as T;
 }
 
-// Test/live are separate merchants — if the key doesn't authenticate on the
-// configured host, retry once on the other before failing.
 async function api<T>(path: string, method: "GET" | "POST", body?: unknown): Promise<T> {
-  const primary = base();
-  try {
-    return await call<T>(primary, path, method, body);
-  } catch (e: any) {
-    if (e?.dodoStatus === 401 || e?.dodoStatus === 403) {
-      const fallback =
-        primary === "https://live.dodopayments.com"
-          ? "https://test.dodopayments.com"
-          : "https://live.dodopayments.com";
-      return call<T>(fallback, path, method, body);
-    }
-    throw e;
-  }
+  return call<T>(base(), path, method, body);
 }
 
 export type CreatedSession = {

@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       }
     }
   } catch {
-    // never crash webhooks; Dodo retries on non-2xx
+    return json({ received: false }, { status: 500 });
   }
 
   return json({ received: true });

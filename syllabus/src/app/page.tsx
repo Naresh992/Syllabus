@@ -289,13 +289,25 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t-2 border-ink bg-paper-50">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row">
-          <Logo href="/" size="sm" />
-          <p className="font-hand text-2xl text-ink-faint">add someone to your syllabus.</p>
-          <div className="flex gap-4 font-display text-xs uppercase">
-            <Link href="/login" className="hover:text-crimson-600">Sign in</Link>
-            <Link href="/enroll" className="hover:text-crimson-600">Enroll</Link>
+        <div className="mx-auto max-w-6xl px-5 py-8">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <Logo href="/" size="sm" />
+            <p className="font-hand text-2xl text-ink-faint">add someone to your syllabus.</p>
+            <div className="flex gap-4 font-display text-xs uppercase">
+              <Link href="/login" className="hover:text-crimson-600">Sign in</Link>
+              <Link href="/enroll" className="hover:text-crimson-600">Enroll</Link>
+            </div>
           </div>
+          <div className="mt-6 flex flex-wrap justify-center gap-4 border-t border-ink/10 pt-6 font-display text-[11px] uppercase text-ink-faint">
+            <Link href="/contact" className="hover:text-crimson-600">Contact Us</Link>
+            <span className="text-ink/20">·</span>
+            <Link href="/privacy" className="hover:text-crimson-600">Privacy Policy</Link>
+            <span className="text-ink/20">·</span>
+            <Link href="/terms" className="hover:text-crimson-600">Terms &amp; Conditions</Link>
+            <span className="text-ink/20">·</span>
+            <Link href="/refund" className="hover:text-crimson-600">Refund Policy</Link>
+          </div>
+          <p className="mt-3 text-center text-xs text-ink-faint">ReSyllabus — Hyderabad, Telangana, India · <a href="mailto:resyllabus1@gmail.com" className="hover:text-crimson-600">resyllabus1@gmail.com</a></p>
         </div>
       </footer>
     </div>

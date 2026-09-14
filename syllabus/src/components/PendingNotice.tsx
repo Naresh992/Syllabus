@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Doodle } from "./ui";
 
 export default function PendingNotice({
   status,
@@ -69,12 +68,8 @@ export default function PendingNotice({
           </Link>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <Doodle name="arrow-curly" className="h-10 w-10 rotate-180 text-ink-faint" />
-          <p className="font-hand max-w-[240px] text-left text-xl leading-tight text-ink-light">
-            Demoing? Sign in as <b>admin@syllabus.app</b> to approve students.
-          </p>
-        </div>
+        <p className="mx-auto mt-4 max-w-sm font-hand text-lg text-ink-faint">Verified within 2 hours — we&apos;ll notify you by email.</p>
+        <p className="mx-auto mt-3 max-w-sm text-xs text-ink-faint">Questions? <a href="mailto:resyllabus1@gmail.com" className="underline hover:text-crimson-600">resyllabus1@gmail.com</a> · <a href="/privacy" className="underline hover:text-crimson-600">Privacy</a> · <a href="/contact" className="underline hover:text-crimson-600">Contact</a></p>
       </div>
     </div>
   );

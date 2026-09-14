@@ -101,7 +101,7 @@ src/
                              block, billing, avatar)
   components/                Logo, AppShell, ProfileCard, Modal, ReportBlockMenu, ui
   lib/                       db, auth (JWT sessions), tiers, limits, discovery,
-                             razorpay, avatar, constants, serialize, time
+                             dodo, avatar, constants, serialize, time
 prisma/
   schema.prisma              full data model (see below)
   seed.ts                    3 campuses · 13 students · matches/chats · events

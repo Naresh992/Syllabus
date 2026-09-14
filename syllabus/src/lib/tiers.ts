@@ -1,6 +1,5 @@
 // -----------------------------------------------------------------------------
-// Subscription tiers — academic-themed. Prices in INR (Razorpay default market).
-// `priceInr` is whole rupees; Razorpay expects paise (see razorpay.ts).
+// Subscription tiers — academic-themed. Prices are whole INR amounts used by Dodo product plans.
 // -----------------------------------------------------------------------------
 
 export type TierId = "audit" | "enrolled" | "honor_roll" | "extra_credit";

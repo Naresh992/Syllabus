@@ -104,8 +104,11 @@ export default function EnrollPage() {
         } else if (user.verificationStatus === "rejected") {
           setMode("resubmit");
           setStage("id");
+        } else if (!user.hasProfile) {
+          setMode("finish");
+          setStage("profile"); // pending + no profile → let them finish enrolling
         } else {
-          setStage("pending"); // pending w/ docs already submitted
+          setStage("pending"); // pending w/ profile complete → show wait screen
         }
       })
       .catch(() => setStage("account")); // not logged in → full flow

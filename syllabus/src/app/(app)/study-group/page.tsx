@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { LoadingScreen, Pill, SectionTitle } from "@/components/ui";
 import VerifyCta from "@/components/VerifyCta";
+import AdSlot from "@/components/AdSlot";
 import { apiGet, apiPost } from "@/lib/fetcher";
 import { eventDate } from "@/lib/time";
 
@@ -99,6 +100,11 @@ export default function StudyGroupPage() {
             </div>
           </div>
         ))}
+
+        {/* ============ AD SLOT (study group) ============ */}
+        <div className="mt-4">
+          <AdSlot slot="9988776655" format="auto" className="mx-auto max-w-3xl" />
+        </div>
       </div>
     </div>
   );

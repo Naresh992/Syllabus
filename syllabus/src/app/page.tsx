@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import { TIERS, TIER_ORDER } from "@/lib/tiers";
 import { TAGLINE } from "@/lib/constants";
 import { Seal, Marquee, TickerItem, Doodle } from "@/components/ui";
+import AdSlot from "@/components/AdSlot";
 
 function SampleCard({
   seed,
@@ -122,6 +123,11 @@ export default function LandingPage() {
         <TickerItem>Study group</TickerItem>
         <TickerItem>Repeat</TickerItem>
       </Marquee>
+
+      {/* ============ AD SLOT (top) ============ */}
+      <div className="mx-auto max-w-6xl px-5 py-8">
+        <AdSlot slot="1234567890" format="auto" className="mx-auto max-w-screen-xl" />
+      </div>
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16">
@@ -272,6 +278,11 @@ export default function LandingPage() {
         <TickerItem>No catfish</TickerItem>
         <TickerItem>Add someone today</TickerItem>
       </Marquee>
+
+      {/* ============ AD SLOT (bottom) ============ */}
+      <div className="mx-auto max-w-6xl px-5 py-8">
+        <AdSlot slot="0987654321" format="auto" className="mx-auto max-w-screen-xl" />
+      </div>
 
       {/* ============ FINAL CTA ============ */}
       <section className="mx-auto max-w-6xl px-5 py-20 text-center">

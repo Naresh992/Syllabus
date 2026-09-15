@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingScreen, IntentBadge, SectionTitle, Doodle } from "@/components/ui";
-import PendingNotice from "@/components/PendingNotice";
+import VerifyCta from "@/components/VerifyCta";
 import { apiGet } from "@/lib/fetcher";
 import { timeAgo } from "@/lib/time";
 import type { CardProfile } from "@/lib/serialize";
@@ -27,7 +27,8 @@ export default function RosterPage() {
       });
   }, []);
 
-  if (gate === "not_verified") return <PendingNotice status="pending" />;
+  if (gate === "not_verified")
+    return <VerifyCta className="mt-10" title="Verify to see your Roster" />;
   if (!roster) return <LoadingScreen label="Loading your roster…" />;
 
   return (

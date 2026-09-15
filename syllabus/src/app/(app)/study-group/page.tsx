@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { LoadingScreen, Pill, SectionTitle } from "@/components/ui";
-import PendingNotice from "@/components/PendingNotice";
+import VerifyCta from "@/components/VerifyCta";
 import { apiGet, apiPost } from "@/lib/fetcher";
 import { eventDate } from "@/lib/time";
 
@@ -41,7 +41,8 @@ export default function StudyGroupPage() {
     }
   }
 
-  if (gate === "not_verified") return <PendingNotice status="pending" />;
+  if (gate === "not_verified")
+    return <VerifyCta className="mt-10" title="Verify to join Study Group" />;
   if (!events) return <LoadingScreen label="Finding your Study Group…" />;
 
   return (

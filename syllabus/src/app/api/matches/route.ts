@@ -6,7 +6,6 @@ import { toCard, cardInclude } from "@/lib/serialize";
 export async function GET() {
   const user = await getSessionUser();
   if (!user) return apiError.unauthorized();
-  if (user.verificationStatus !== "approved") return apiError.notVerified();
 
   const matches = await prisma.match.findMany({
     where: { active: true, OR: [{ userAId: user.id }, { userBId: user.id }] },

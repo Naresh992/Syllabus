@@ -29,9 +29,24 @@ export default function ProfileCard({
         <img
           src={photos[clampedIdx]}
           alt={profile.name}
-          className="h-full w-full object-cover"
+          className={clsx("h-full w-full object-cover", profile.blurred && "blur-lg")}
           draggable={false}
         />
+
+        {/* blurred-preview lock */}
+        {profile.blurred && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-ink/30 p-6 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl border-2 border-ink bg-marker font-display text-2xl text-ink shadow-sticker-sm">
+              ✓
+            </span>
+            <p className="font-display text-lg uppercase leading-tight text-paper-50 drop-shadow-[0_2px_0_rgba(34,26,20,1)]">
+              Verified student
+            </p>
+            <p className="font-hand text-xl text-marker drop-shadow-[0_1px_0_rgba(34,26,20,1)]">
+              get ID-verified to see who this is
+            </p>
+          </div>
+        )}
 
         {/* progress tabs */}
         {photos.length > 1 && (

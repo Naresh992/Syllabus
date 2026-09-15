@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingScreen, SectionTitle, Doodle } from "@/components/ui";
-import PendingNotice from "@/components/PendingNotice";
+import VerifyCta from "@/components/VerifyCta";
 import { apiGet } from "@/lib/fetcher";
 import { timeAgo } from "@/lib/time";
 import type { CardProfile } from "@/lib/serialize";
@@ -24,7 +24,8 @@ export default function OfficeHoursInbox() {
       .catch((e) => (e.data?.code === "not_verified" ? setGate("not_verified") : setRoster([])));
   }, []);
 
-  if (gate === "not_verified") return <PendingNotice status="pending" />;
+  if (gate === "not_verified")
+    return <VerifyCta className="mt-10" title="Verify to unlock Office Hours" />;
   if (!roster) return <LoadingScreen label="Opening Office Hours…" />;
 
   return (

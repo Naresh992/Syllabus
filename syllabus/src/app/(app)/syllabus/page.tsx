@@ -6,6 +6,7 @@ import clsx from "clsx";
 import ProfileCard from "@/components/ProfileCard";
 import Modal from "@/components/Modal";
 import PendingNotice from "@/components/PendingNotice";
+import VerifyCta from "@/components/VerifyCta";
 import { LoadingScreen, Spinner, IntentBadge, SectionTitle, Seal, Doodle } from "@/components/ui";
 import { apiGet, apiPost } from "@/lib/fetcher";
 import type { CardProfile } from "@/lib/serialize";
@@ -24,7 +25,9 @@ export default function SyllabusPage() {
   const [deck, setDeck] = useState<CardProfile[]>([]);
   const [status, setStatus] = useState<Status | null>(null);
   const [loading, setLoading] = useState(true);
+  const [verificationRequired, setVerificationRequired] = useState(false);
   const [gate, setGate] = useState<"not_verified" | "no_profile" | null>(null);
+  const [verifyOpen, setVerifyOpen] = useState(false);
 
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -37,6 +40,7 @@ export default function SyllabusPage() {
 
   const [rosterOpen, setRosterOpen] = useState(false);
   const [roster, setRoster] = useState<{ entitled: boolean; count: number; cards: CardProfile[] } | null>(null);
+  const [rosterGate, setRosterGate] = useState<"not_verified" | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -44,6 +48,7 @@ export default function SyllabusPage() {
       const data = await apiGet("/api/discovery");
       setDeck(data.cards);
       setStatus(data.status);
+      setVerificationRequired(!!data.verificationRequired);
       setGate(null);
     } catch (e: any) {
       if (e.data?.code === "not_verified") setGate("not_verified");
@@ -62,6 +67,12 @@ export default function SyllabusPage() {
   const doSwipe = useCallback(
     async (direction: "add" | "drop" | "raise_hand") => {
       if (!top || busy.current) return;
+
+      // Unverified browse mode: surface gate instead of swiping.
+      if (verificationRequired) {
+        setVerifyOpen(true);
+        return;
+      }
 
       if (direction === "raise_hand" && status && status.superRemaining <= 0) {
         setPaywall(
@@ -105,7 +116,7 @@ export default function SyllabusPage() {
         busy.current = false;
       }
     },
-    [top, status]
+    [top, status, verificationRequired]
   );
 
   function onDown(e: React.PointerEvent) {
@@ -129,15 +140,17 @@ export default function SyllabusPage() {
   async function openRoster() {
     setRosterOpen(true);
     setRoster(null);
+    setRosterGate(null);
     try {
       setRoster(await apiGet("/api/likes"));
-    } catch {
-      setRoster({ entitled: false, count: 0, cards: [] });
+    } catch (e: any) {
+      if (e.data?.code === "not_verified") setRosterGate("not_verified");
+      else setRoster({ entitled: false, count: 0, cards: [] });
     }
   }
 
   if (loading) return <LoadingScreen label="shuffling the syllabus…" />;
-  if (gate === "not_verified") return <PendingNotice status="pending" />;
+  if (gate === "not_verified") return <VerifyCta title="Verify to browse the Syllabus" />;
   if (gate === "no_profile") return <PendingNotice variant="profile" />;
 
   const rotate = dx / 18;
@@ -150,6 +163,20 @@ export default function SyllabusPage() {
           Class Roster
         </button>
       </div>
+
+      {verificationRequired && (
+        <div className="mb-4 -rotate-1 rounded-2xl border-2 border-ink bg-marker p-3 shadow-sticker-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-display text-xs uppercase leading-tight">You&apos;re browsing blurred previews 👋</p>
+              <p className="text-xs font-medium text-ink/70">Get ID-verified (2h) to unblur profiles, add, drop &amp; message.</p>
+            </div>
+            <Link href="/enroll?m=verify" className="btn-primary !py-1.5 !text-xs whitespace-nowrap">
+              Verify now
+            </Link>
+          </div>
+        </div>
+      )}
 
       {status && (
         <div className="mb-4 flex gap-2">
@@ -283,9 +310,21 @@ export default function SyllabusPage() {
         </div>
       </Modal>
 
+      {/* Verify gate (unverified browse mode) */}
+      <Modal open={verifyOpen} onClose={() => setVerifyOpen(false)}>
+        <VerifyCta
+          plain
+          title="Verify to connect"
+          body="You're on blurred previews right now. Upload your college ID + a selfie to unblur profiles, add & drop, and start conversations."
+          cta="Get verified (2h) →"
+        />
+      </Modal>
+
       {/* Class Roster modal */}
       <Modal open={rosterOpen} onClose={() => setRosterOpen(false)} title="Class Roster">
-        {!roster ? (
+        {rosterGate === "not_verified" ? (
+          <VerifyCta plain title="Verify to see your Class Roster" cta="Get verified →" />
+        ) : !roster ? (
           <div className="flex justify-center py-6">
             <Spinner className="h-6 w-6 text-crimson-600" />
           </div>

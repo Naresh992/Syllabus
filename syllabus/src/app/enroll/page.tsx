@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import { Spinner, Toggle, Chip, Doodle } from "@/components/ui";
@@ -53,12 +53,13 @@ async function fileToDataUrl(file: File, max = 800, quality = 0.72): Promise<str
   return canvas.toDataURL("image/jpeg", quality);
 }
 
-const NEW_STEPS = ["account", "id", "selfie", "dob", "profile", "prerequisites"];
+const NEW_STEPS = ["dob", "account", "profile", "prerequisites"];
 
 export default function EnrollPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [stage, setStage] = useState<Stage>("loading");
-  const [mode, setMode] = useState<"new" | "finish" | "resubmit">("new");
+  const [mode, setMode] = useState<"new" | "finish" | "resubmit" | "verify">("new");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,37 +95,58 @@ export default function EnrollPage() {
   useEffect(() => {
     apiGet("/api/auth/me")
       .then(({ user }) => {
-        if (user.hasProfile) {
-          router.replace("/syllabus");
+        // Verify mode: came from /enroll?m=verify
+        if (pathname.includes("?m=verify")) {
+          setMode("verify");
+          if (user.verificationStatus === "approved") {
+            router.push("/syllabus");
+          } else {
+            setStage("id");
+          }
           return;
         }
-        if (user.verificationStatus === "approved") {
-          setMode("finish");
-          setStage("profile");
-        } else if (user.verificationStatus === "rejected") {
+        
+        if (user.hasProfile && user.verificationStatus === "approved") {
+          router.push("/syllabus");
+          return;
+        }
+        if (user.hasProfile && user.verificationStatus === "rejected") {
           setMode("resubmit");
           setStage("id");
-        } else if (!user.hasProfile) {
-          setMode("finish");
-          setStage("profile"); // pending + no profile → let them finish enrolling
-        } else {
-          setStage("pending"); // pending w/ profile complete → show wait screen
+          return;
         }
+        if (!user.hasProfile) {
+          setMode("finish");
+          setStage("profile");
+          return;
+        }
+        setStage("profile");
       })
-      .catch(() => setStage("account")); // not logged in → full flow
+      .catch(() => setStage("dob"));
   }, [router]);
 
   const dobAge = dob ? calcAge(dob) : null;
   const stepIndex = NEW_STEPS.indexOf(stage);
 
-  function submitAccount(e: React.FormEvent) {
+  async function submitAccount(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (name.trim().length < 1) return setError("Enter your name.");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError("Enter a valid email.");
     if (password.length < 8) return setError("Password must be at least 8 characters.");
+    if (dobAge == null || dobAge < MIN_AGE) return setError(`You must be at least ${MIN_AGE} to join Resyllabus.`);
     if (college.trim().length < 2) return setError("Tell us your college or university.");
-    setStage("id");
+    setBusy(true);
+    try {
+      await apiPost("/api/auth/signup", { name, email, password, dob, college, city, country });
+      setMode("finish");
+      setStage("profile");
+    } catch (err: any) {
+      setError(err.message);
+      if (/email|campus|\.edu|exists/i.test(err.message)) setStage("account");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function onPickId(e: React.ChangeEvent<HTMLInputElement>) {

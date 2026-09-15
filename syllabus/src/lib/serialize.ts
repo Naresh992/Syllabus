@@ -18,6 +18,7 @@ export type CardProfile = {
   topBadge: boolean; // "Valedictorian" (Extra Credit)
   likedYou?: boolean;
   superLikedYou?: boolean;
+  blurred?: boolean; // unverified viewer → photos blurred + name truncated
 };
 
 type UserForCard = {

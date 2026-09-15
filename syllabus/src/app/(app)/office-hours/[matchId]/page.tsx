@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { LoadingScreen, Spinner } from "@/components/ui";
 import ReportBlockMenu from "@/components/ReportBlockMenu";
+import VerifyCta from "@/components/VerifyCta";
 import { apiGet, apiPost } from "@/lib/fetcher";
 import { clockTime } from "@/lib/time";
 import type { CardProfile } from "@/lib/serialize";
@@ -84,7 +85,12 @@ export default function ThreadPage({ params }: { params: { matchId: string } }) 
   if (loading) return <LoadingScreen label="Opening the conversation…" />;
   if (error === "not_verified") {
     return (
-      <div className="py-6 text-center text-ink-light">Only verified students can message.</div>
+      <VerifyCta
+        className="mt-10"
+        title="Verify to message"
+        body="You matched! Unlock this conversation by verifying your college ID + a live selfie. Your documents are never shown to other users."
+        cta="Get verified (2h) →"
+      />
     );
   }
   if (!other) {

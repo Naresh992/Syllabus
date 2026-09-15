@@ -123,7 +123,7 @@ export default function EnrollPage() {
         setStage("profile");
       })
       .catch(() => setStage("dob"));
-  }, [router]);
+  }, [pathname, router]);
 
   const dobAge = dob ? calcAge(dob) : null;
   const stepIndex = NEW_STEPS.indexOf(stage);

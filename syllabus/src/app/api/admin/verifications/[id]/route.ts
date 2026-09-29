@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
+import { creditWallet } from "@/lib/earn";
 
 const schema = z.object({ action: z.enum(["approve", "reject"]) });
 
@@ -28,6 +29,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       data: { verificationStatus: status },
     }),
   ]);
+
+  // Refer & Earn: pay the referrer once when the friend completes ID verification.
+  if (status === "approved") {
+    const use = await prisma.referralUse.findUnique({ where: { referredId: doc.userId } });
+    if (use && !use.credited) {
+      await prisma.referralUse.update({ where: { id: use.id }, data: { credited: true } });
+      await creditWallet(use.referrerId, use.creditedAmount);
+    }
+  }
 
   return json({ ok: true, status });
 }

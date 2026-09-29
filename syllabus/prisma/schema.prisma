@@ -66,6 +66,14 @@ model User {
 
   reviewedDocs VerificationDoc[] @relation("reviewer")
 
+  taskCompletions TaskCompletion[]
+  wallet          Wallet?
+  adViews         AdView[]
+  payouts         PayoutRequest[]
+  referralCode    ReferralCode?
+  referralsMade   ReferralUse[] @relation("referrer")
+  referralUsed    ReferralUse?  @relation("referred")
+
   @@map("users")
 }
 
@@ -247,4 +255,112 @@ model Block {
 
   @@unique([blockerId, blockedId])
   @@map("blocks")
+}
+
+// -----------------------------------------------------------------------------
+// Earn tab — rewards layer (prototype). Balances are integer credits,
+// 1 credit = ₹1 to keep the UI simple. Production AdMob rates (₹0.10–0.50/ad)
+// would map to paise; the prototype credits a flat 1 credit per verified ad.
+// -----------------------------------------------------------------------------
+
+model EarnTask {
+  id            String   @id @default(cuid())
+  category      String // watch | refer | content | engagement | feedback | social
+  title         String
+  description   String   @default("")
+  payoutAmount  Int // credits
+  requiresReview Boolean @default(false)
+  oncePerUser   Boolean  @default(true)
+  tierRequired  String? // min tier id to unlock, e.g. "enrolled" (null = all)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  completions TaskCompletion[]
+
+  @@map("earn_tasks")
+}
+
+model TaskCompletion {
+  id          String    @id @default(cuid())
+  userId      String
+  taskId      String
+  status      String    @default("pending") // pending | approved | rejected
+  proofUrl    String?
+  creditedAmount Int    @default(0)
+  completedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task EarnTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@index([userId, status])
+  @@map("task_completions")
+}
+
+model Wallet {
+  userId         String   @id
+  balance        Int      @default(0)
+  lifetimeEarned Int      @default(0)
+  lifetimePaidOut Int     @default(0)
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallets")
+}
+
+model AdView {
+  id             String   @id @default(cuid())
+  userId         String
+  callbackId     String?  @unique // AdMob server-side callback id (mock in prototype)
+  verified       Boolean  @default(true)
+  creditedAmount Int      @default(1)
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("ad_views")
+}
+
+model PayoutRequest {
+  id          String    @id @default(cuid())
+  userId      String
+  amount      Int // credits (1 credit = ₹1)
+  status      String    @default("pending") // pending | approved | rejected | paid
+  upiId       String
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("payout_requests")
+}
+
+model ReferralCode {
+  userId    String @id
+  code      String @unique
+  usesCount Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("referral_codes")
+}
+
+model ReferralUse {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referredId     String   @unique // one referral credit per referred user, ever
+  creditedAmount Int      @default(25)
+  credited       Boolean  @default(false) // paid out only when the friend gets ID-verified
+  createdAt      DateTime @default(now())
+
+  referrer User @relation("referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("referred", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@map("referral_uses")
 }

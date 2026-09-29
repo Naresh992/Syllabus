@@ -20,6 +20,7 @@ function Icon({ name, className }: { name: string; className?: string }) {
     roster: <path d="M12 21s-7-4.3-9.3-8.5C1 9.4 2.6 6 6 6c2 0 3.2 1.2 4 2.3C10.8 7.2 12 6 14 6c3.4 0 5 3.4 3.3 6.5C19 16.7 12 21 12 21Z" />,
     chat: <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1Z" />,
     calendar: <path d="M7 2v3M17 2v3M3.5 8h17M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />,
+    earn: <path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm0 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm-1.2 3.2v1h-.9a1 1 0 0 0 0 2h2.5l.5.1c.9.3 1.5 1 1.5 2 0 .9-.6 1.6-1.4 1.9l1.6 2.1-1.5 1-1.7-2.3h-.6v2.3h-1.9v-2.3h-.9a1 1 0 0 1 0-2h1v-1h.8Zm.9 2.6h1.1c.4 0 .7-.3.7-.7s-.3-.7-.7-.7h-1.1v1.4Z" />,
     shield: <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Zm-1.2 12.5 5-5-1.4-1.4-3.6 3.6-1.6-1.6L7.8 12l3 3.5Z" />,
     settings: <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm8-3.5a8 8 0 0 0-.2-1.7l2-1.6-2-3.4-2.4 1a8 8 0 0 0-3-1.7L14 0h-4l-.4 2.6a8 8 0 0 0-3 1.7l-2.4-1-2 3.4 2 1.6A8 8 0 0 0 4 12c0 .6 0 1.1.2 1.7l-2 1.6 2 3.4 2.4-1a8 8 0 0 0 3 1.7L10 24h4l.4-2.6a8 8 0 0 0 3-1.7l2.4 1 2-3.4-2-1.6c.1-.6.2-1.1.2-1.7Z" />,
     logout: <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M4 12h11" />,
@@ -54,6 +55,7 @@ export default function AppShell({
         { href: "/roster", label: "My Roster", icon: "roster" },
         { href: "/office-hours", label: "Office Hours", icon: "chat" },
         { href: "/study-group", label: "Study Group", icon: "calendar" },
+        { href: "/earn", label: "Earn", icon: "earn" },
       ];
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");

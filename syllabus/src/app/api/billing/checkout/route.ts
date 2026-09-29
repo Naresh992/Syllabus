@@ -1,20 +1,11 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
-import { createCheckoutSession } from "@/lib/dodo";
+import { createRazorpayOrder } from "@/lib/razorpay";
 import { isPaidTier, type TierId } from "@/lib/tiers";
 import { z } from "zod";
 
 const schema = z.object({ tier: z.string() });
-
-function siteOrigin(req: Request): string {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
-  if (envUrl) return envUrl.replace(/\/$/, "");
-  const proto = req.headers.get("x-forwarded-proto") ?? "https";
-  const host =
-    req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "syllabus-iota.vercel.app";
-  return `${proto}://${host}`;
-}
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -27,30 +18,26 @@ export async function POST(req: Request) {
   const tierId = parsed.data.tier as TierId;
 
   try {
-    const session = await createCheckoutSession(
-      tierId,
-      { id: user.id, email: user.email, name: user.name },
-      `${siteOrigin(req)}/billing/return`
-    );
+    const order = await createRazorpayOrder(tierId, `syllabus_${user.id}_${Date.now()}`);
+    const amountInr = Number(order.amount) / 100;
 
     await prisma.payment.create({
       data: {
         userId: user.id,
         tier: tierId,
-        orderId: session.orderId,
-        amount: session.amount,
-        currency: session.currency,
+        orderId: order.id,
+        amount: Number(order.amount),
+        currency: order.currency,
         status: "created",
       },
     });
 
     return json({
-      orderId: session.orderId,
-      checkoutUrl: session.checkoutUrl,
-      amount: session.amount,
-      amountInr: session.amountInr,
-      currency: session.currency,
-      environment: session.environment,
+      orderId: order.id,
+      amount: Number(order.amount),
+      amountInr,
+      currency: order.currency,
+      keyId: process.env.API_KEY,
       tier: tierId,
     });
   } catch (e: any) {

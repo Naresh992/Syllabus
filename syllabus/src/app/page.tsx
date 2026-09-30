@@ -4,6 +4,7 @@ import { TIERS, TIER_ORDER } from "@/lib/tiers";
 import { TAGLINE } from "@/lib/constants";
 import { Seal, Marquee, TickerItem, Doodle } from "@/components/ui";
 import AdSlot from "@/components/AdSlot";
+import AdsterraSlot from "@/components/AdsterraSlot";
 
 function SampleCard({
   seed,
@@ -126,7 +127,7 @@ export default function LandingPage() {
 
       {/* ============ AD SLOT (top) ============ */}
       <div className="mx-auto max-w-6xl px-5 py-8">
-        <AdSlot slot="1234567890" format="auto" className="mx-auto max-w-screen-xl" />
+        <AdsterraSlot adKey={process.env.key} className="mx-auto flex min-h-[90px] justify-center overflow-hidden" />
       </div>
 
       {/* ============ HOW IT WORKS ============ */}

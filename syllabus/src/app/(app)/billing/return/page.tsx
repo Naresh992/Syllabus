@@ -22,8 +22,9 @@ export default function BillingReturnPage() {
 
     (async () => {
       try {
-        const status = params.get("status") ?? "";
         const returnedPaymentId = params.get("payment_id") ?? "";
+        const returnedOrderId = params.get("order_id") ?? "";
+        const returnedSignature = params.get("signature") ?? "";
 
         // Resolve OUR pending order (never trust client-provided ids alone).
         const { pending } = await apiGet("/api/billing/pending");
@@ -35,29 +36,16 @@ export default function BillingReturnPage() {
           return;
         }
 
-        if (status && !["succeeded", "succeed", "success", "paid"].includes(status.toLowerCase())) {
-          await apiPost("/api/billing/failure", {
-            orderId: pending.orderId,
-            code: null,
-            description: `Gateway returned status: ${status}`,
-            reason: status,
-            source: "return_url",
-            step: null,
-          }).catch(() => null);
-          setState({
-            kind: "failed",
-            message:
-              status.toLowerCase() === "cancelled"
-                ? "Payment was cancelled. No charge was made — try again when ready."
-                : `Payment did not complete (gateway says: ${status}). No tier change was made.`,
-          });
+        if (!returnedOrderId || !returnedPaymentId || !returnedSignature || returnedOrderId !== pending.orderId) {
+          setState({ kind: "failed", message: "Payment confirmation details are missing or invalid." });
           return;
         }
 
-        setState({ kind: "working", label: "Confirming with the payment gateway…" });
+        setState({ kind: "working", label: "Confirming with Razorpay…" });
         const res = await apiPost("/api/billing/verify", {
-          orderId: pending.orderId,
+          orderId: returnedOrderId,
           paymentId: returnedPaymentId,
+          signature: returnedSignature,
         });
         setState({ kind: "success", tierName: res.tierName });
         router.refresh();

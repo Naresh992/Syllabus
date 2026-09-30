@@ -2,14 +2,15 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
-import { getSessionStatus } from "@/lib/dodo";
+import { verifyPaymentSignature } from "@/lib/razorpay";
 import { getTier, isPaidTier, type TierId } from "@/lib/tiers";
 
 // Confirms a checkout session server-to-server (GET /checkouts/{id}).
 // Called by /billing/return after Dodo redirects back.
 const schema = z.object({
-  orderId: z.string().min(1).max(100), // Dodo session_id from our own pending row
-  paymentId: z.string().max(100).optional().default(""),
+  orderId: z.string().min(1).max(100),
+  paymentId: z.string().min(1).max(100),
+  signature: z.string().min(1).max(200),
 });
 
 export async function POST(req: Request) {
@@ -32,27 +33,12 @@ export async function POST(req: Request) {
     return json({ ok: true, tier: payment.tier, tierName: tierInfo.name });
   }
 
-  let status;
   try {
-    status = await getSessionStatus(orderId);
+    if (payment.orderId !== orderId || !verifyPaymentSignature(orderId, paymentId, parsed.data.signature)) {
+      return apiError.badRequest("Payment signature is invalid.");
+    }
   } catch {
-    return apiError.server("Could not confirm the payment. Try again in a moment.");
-  }
-
-  // Cross-checks: Dodo's email must be ours, and a supplied payment_id must match.
-  if (status.email && status.email.toLowerCase() !== user.email.toLowerCase()) {
-    return apiError.badRequest("Payment email does not match this account.");
-  }
-  if (paymentId && status.paymentId && paymentId !== status.paymentId) {
-    return apiError.badRequest("Payment reference does not match.");
-  }
-
-  if (status.status !== "succeeded") {
-    return apiError.badRequest(
-      status.status === "processing"
-        ? "Payment is still processing at the gateway."
-        : "Payment was not completed."
-    );
+    return apiError.badRequest("Payment signature is invalid.");
   }
 
   const periodEnd = new Date();
@@ -61,7 +47,7 @@ export async function POST(req: Request) {
   try {
     await prisma.payment.update({
       where: { orderId },
-      data: { status: "captured", paymentId: status.paymentId, rawPayload: null },
+      data: { status: "captured", paymentId, rawPayload: null },
     });
     await prisma.subscription.upsert({
       where: { userId: user.id },
@@ -69,15 +55,15 @@ export async function POST(req: Request) {
         userId: user.id,
         tier: payment.tier,
         status: "active",
-        provider: "dodo",
-        providerSubscriptionId: status.paymentId,
+        provider: "razorpay",
+        providerSubscriptionId: paymentId,
         currentPeriodEnd: periodEnd,
       },
       update: {
         tier: payment.tier,
         status: "active",
-        provider: "dodo",
-        providerSubscriptionId: status.paymentId,
+        provider: "razorpay",
+        providerSubscriptionId: paymentId,
         currentPeriodEnd: periodEnd,
       },
     });

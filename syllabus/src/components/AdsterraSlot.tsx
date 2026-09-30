@@ -1,6 +1,6 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect, useRef } from "react";
 
 interface AdsterraSlotProps {
   adKey?: string;
@@ -8,24 +8,36 @@ interface AdsterraSlotProps {
 }
 
 export default function AdsterraSlot({ adKey, className }: AdsterraSlotProps) {
-  if (!adKey) return null;
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  return (
-    <div className={className} aria-label="Advertisement">
-      <Script id={`adsterra-options-${adKey}`} strategy="afterInteractive">
-        {`window.atOptions = {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !adKey) return;
+
+    const options = document.createElement("script");
+    options.text = `window.atOptions = {
   key: ${JSON.stringify(adKey)},
   format: "iframe",
   height: 90,
   width: 728,
   params: {}
-};`}
-      </Script>
-      <Script
-        id={`adsterra-invoke-${adKey}`}
-        src={`https://www.highrevenueformat.com/${encodeURIComponent(adKey)}/invoke.js`}
-        strategy="afterInteractive"
-      />
-    </div>
+};`;
+
+    const invoke = document.createElement("script");
+    invoke.async = true;
+    invoke.src = `https://www.highrevenueformat.com/${encodeURIComponent(adKey)}/invoke.js`;
+
+    container.append(options, invoke);
+
+    return () => {
+      options.remove();
+      invoke.remove();
+    };
+  }, [adKey]);
+
+  if (!adKey) return null;
+
+  return (
+    <div ref={containerRef} className={className} aria-label="Advertisement" />
   );
 }

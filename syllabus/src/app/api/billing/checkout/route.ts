@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
-import { createCheckoutSession } from "@/lib/dodo";
+import { createRazorpayOrder } from "@/lib/razorpay";
 import { isPaidTier, type TierId } from "@/lib/tiers";
 import { z } from "zod";
 
@@ -18,26 +18,25 @@ export async function POST(req: Request) {
   const tierId = parsed.data.tier as TierId;
 
   try {
-    const origin = new URL(req.url).origin;
-    const order = await createCheckoutSession(tierId, user, `${origin}/billing/return`);
+    const order = await createRazorpayOrder(tierId, `syllabus_${user.id}_${Date.now()}`);
 
     await prisma.payment.create({
       data: {
         userId: user.id,
         tier: tierId,
-        orderId: order.orderId,
-        amount: order.amount,
+        orderId: order.id,
+        amount: Number(order.amount),
         currency: order.currency,
         status: "created",
       },
     });
 
     return json({
-      orderId: order.orderId,
-      checkoutUrl: order.checkoutUrl,
+      orderId: order.id,
       amount: order.amount,
-      amountInr: order.amountInr,
+      amountInr: Number(order.amount) / 100,
       currency: order.currency,
+      keyId: process.env.API_KEY,
       tier: tierId,
     });
   } catch (e: any) {

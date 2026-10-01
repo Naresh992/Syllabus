@@ -30,8 +30,29 @@ export default function PricingPage() {
     setBusyTier(tierId);
     try {
       const order = await apiPost("/api/billing/checkout", { tier: tierId });
-      if (!order.checkoutUrl) throw new Error("Dodo Checkout is unavailable.");
-      window.location.href = order.checkoutUrl;
+      await new Promise<void>((resolve, reject) => {
+        if (window.Razorpay) return resolve();
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Could not load Razorpay Checkout."));
+        document.body.appendChild(script);
+      });
+      if (!window.Razorpay) throw new Error("Razorpay Checkout is unavailable.");
+      const checkout = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Resyllabus",
+        description: TIERS[tierId].name,
+        order_id: order.orderId,
+        theme: { color: "#f4c542" },
+        handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
+          window.location.href = `/billing/return?order_id=${encodeURIComponent(response.razorpay_order_id)}&payment_id=${encodeURIComponent(response.razorpay_payment_id)}&signature=${encodeURIComponent(response.razorpay_signature)}`;
+        },
+        modal: { ondismiss: () => setBusyTier(null) },
+      });
+      checkout.open();
     } catch (e: any) {
       setError(e.message || "Upgrade failed.");
       setBusyTier(null);
@@ -60,7 +81,7 @@ export default function PricingPage() {
         <h1 className="font-display text-4xl uppercase leading-none sm:text-5xl">
           Free to audit.<br />Cheap to <span className="hl">ace.</span>
         </h1>
-        <p className="mt-2 font-medium text-ink-light">Upgrade anytime. Secure checkout via Dodo.</p>
+        <p className="mt-2 font-medium text-ink-light">Upgrade anytime. Secure checkout via Razorpay.</p>
       </div>
 
       {error && (

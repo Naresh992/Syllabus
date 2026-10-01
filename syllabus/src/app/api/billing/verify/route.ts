@@ -2,7 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { apiError, json } from "@/lib/api";
-import { getSessionStatus } from "@/lib/dodo";
+import { verifyPaymentSignature } from "@/lib/razorpay";
 import { getTier, isPaidTier, type TierId } from "@/lib/tiers";
 
 // Confirms a checkout session server-to-server (GET /checkouts/{id}).
@@ -19,7 +19,8 @@ export async function POST(req: Request) {
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return apiError.badRequest("Invalid payment confirmation.");
-  const { orderId } = parsed.data;
+  const { orderId, paymentId, signature } = parsed.data;
+  if (!paymentId || !signature) return apiError.badRequest("Payment confirmation details are missing.");
 
   const payment = await prisma.payment.findUnique({ where: { orderId } });
   if (!payment || payment.userId !== user.id) {
@@ -33,14 +34,12 @@ export async function POST(req: Request) {
     return json({ ok: true, tier: payment.tier, tierName: tierInfo.name });
   }
 
-  let session;
   try {
-    session = await getSessionStatus(orderId);
+    if (!verifyPaymentSignature(orderId, paymentId, signature)) {
+      return apiError.badRequest("Payment signature is invalid.");
+    }
   } catch {
-    return apiError.server("Could not confirm the payment with Dodo.");
-  }
-  if (session.status !== "succeeded") {
-    return apiError.badRequest("Payment has not succeeded yet.");
+    return apiError.badRequest("Payment signature is invalid.");
   }
 
   const periodEnd = new Date();
@@ -49,7 +48,7 @@ export async function POST(req: Request) {
   try {
     await prisma.payment.update({
       where: { orderId },
-      data: { status: "captured", paymentId: session.paymentId, rawPayload: null },
+      data: { status: "captured", paymentId, rawPayload: null },
     });
     await prisma.subscription.upsert({
       where: { userId: user.id },
@@ -58,14 +57,14 @@ export async function POST(req: Request) {
         tier: payment.tier,
         status: "active",
         provider: "razorpay",
-        providerSubscriptionId: session.paymentId,
+        providerSubscriptionId: paymentId,
         currentPeriodEnd: periodEnd,
       },
       update: {
         tier: payment.tier,
         status: "active",
         provider: "razorpay",
-        providerSubscriptionId: session.paymentId,
+        providerSubscriptionId: paymentId,
         currentPeriodEnd: periodEnd,
       },
     });

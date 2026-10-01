@@ -19,7 +19,6 @@ export async function POST(req: Request) {
 
   try {
     const order = await createRazorpayOrder(tierId, `syllabus_${user.id}_${Date.now()}`);
-    const amountInr = Number(order.amount) / 100;
 
     await prisma.payment.create({
       data: {
@@ -34,8 +33,8 @@ export async function POST(req: Request) {
 
     return json({
       orderId: order.id,
-      amount: Number(order.amount),
-      amountInr,
+      amount: order.amount,
+      amountInr: Number(order.amount) / 100,
       currency: order.currency,
       keyId: process.env.API_KEY,
       tier: tierId,

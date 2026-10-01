@@ -22,8 +22,8 @@ export default function BillingReturnPage() {
 
     (async () => {
       try {
-        const returnedPaymentId = params.get("payment_id") ?? "";
         const returnedOrderId = params.get("order_id") ?? "";
+        const returnedPaymentId = params.get("payment_id") ?? "";
         const returnedSignature = params.get("signature") ?? "";
 
         // Resolve OUR pending order (never trust client-provided ids alone).

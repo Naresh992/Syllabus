@@ -38,16 +38,14 @@ export default function PricingPage() {
         script.onerror = () => reject(new Error("Could not load Razorpay Checkout."));
         document.body.appendChild(script);
       });
-      const RazorpayCheckout = window.Razorpay;
-      if (!RazorpayCheckout) throw new Error("Razorpay Checkout is unavailable.");
-      const checkout = new RazorpayCheckout({
+      if (!window.Razorpay) throw new Error("Razorpay Checkout is unavailable.");
+      const checkout = new window.Razorpay({
         key: order.keyId,
         amount: order.amount,
         currency: order.currency,
         name: "Resyllabus",
         description: TIERS[tierId].name,
         order_id: order.orderId,
-        prefill: { name: undefined, email: undefined },
         theme: { color: "#f4c542" },
         handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
           window.location.href = `/billing/return?order_id=${encodeURIComponent(response.razorpay_order_id)}&payment_id=${encodeURIComponent(response.razorpay_payment_id)}&signature=${encodeURIComponent(response.razorpay_signature)}`;

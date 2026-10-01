@@ -9,8 +9,8 @@ import { getTier, isPaidTier, type TierId } from "@/lib/tiers";
 // Called by /billing/return after Dodo redirects back.
 const schema = z.object({
   orderId: z.string().min(1).max(100),
-  paymentId: z.string().min(1).max(100),
-  signature: z.string().min(1).max(200),
+  paymentId: z.string().max(100).optional(),
+  signature: z.string().max(200).optional(),
 });
 
 export async function POST(req: Request) {
@@ -19,7 +19,8 @@ export async function POST(req: Request) {
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return apiError.badRequest("Invalid payment confirmation.");
-  const { orderId, paymentId } = parsed.data;
+  const { orderId, paymentId, signature } = parsed.data;
+  if (!paymentId || !signature) return apiError.badRequest("Payment confirmation details are missing.");
 
   const payment = await prisma.payment.findUnique({ where: { orderId } });
   if (!payment || payment.userId !== user.id) {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    if (payment.orderId !== orderId || !verifyPaymentSignature(orderId, paymentId, parsed.data.signature)) {
+    if (!verifyPaymentSignature(orderId, paymentId, signature)) {
       return apiError.badRequest("Payment signature is invalid.");
     }
   } catch {

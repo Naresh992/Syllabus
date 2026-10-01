@@ -23,12 +23,11 @@ export const DODO_ENV = process.env.DODO_ENV === "live" ? "live" : "test";
 const productionEnvironmentMisconfigured =
   process.env.NODE_ENV === "production" && DODO_ENV !== "live";
 
-// Product IDs: env override wins, dashboard-confirmed IDs as fallback.
 const PRODUCT_IDS: Record<TierId, string> = {
   audit: "",
-  enrolled: process.env.DODO_PRODUCT_ENROLLED || "pdt_0NnRgr6KU96Dtq1HxuhJCH",
-  honor_roll: process.env.DODO_PRODUCT_HONOR_ROLL || "pdt_0NnRgr6qDjhiHXbHWaYR5",
-  extra_credit: process.env.DODO_PRODUCT_EXTRA_CREDIT || "pdt_0NnRgr8AX0BBSWAHdCw85",
+  enrolled: process.env.DODO_PRODUCT_ENROLLED || "",
+  honor_roll: process.env.DODO_PRODUCT_HONOR_ROLL || "",
+  extra_credit: process.env.DODO_PRODUCT_EXTRA_CREDIT || "",
 };
 
 function base(): string {

@@ -20,7 +20,7 @@ export async function GET() {
     DODO_PRODUCT_ENROLLED: !!process.env.DODO_PRODUCT_ENROLLED,
     DODO_PRODUCT_HONOR_ROLL: !!process.env.DODO_PRODUCT_HONOR_ROLL,
     DODO_PRODUCT_EXTRA_CREDIT: !!process.env.DODO_PRODUCT_EXTRA_CREDIT,
-    DODO_ENV: process.env.DODO_ENV || "not set",
+    DODO_ENV: process.env.DODO_ENV === "live" ? "live" : process.env.DODO_ENV === "test" ? "test" : "not set",
   };
 
   let db = "skipped";

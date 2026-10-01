@@ -22,9 +22,7 @@ export default function BillingReturnPage() {
 
     (async () => {
       try {
-        const returnedPaymentId = params.get("payment_id") ?? "";
-        const returnedOrderId = params.get("order_id") ?? "";
-        const returnedSignature = params.get("signature") ?? "";
+        const returnedOrderId = params.get("session_id") ?? params.get("order_id") ?? "";
 
         // Resolve OUR pending order (never trust client-provided ids alone).
         const { pending } = await apiGet("/api/billing/pending");
@@ -36,17 +34,13 @@ export default function BillingReturnPage() {
           return;
         }
 
-        if (!returnedOrderId || !returnedPaymentId || !returnedSignature || returnedOrderId !== pending.orderId) {
+        if (!returnedOrderId || returnedOrderId !== pending.orderId) {
           setState({ kind: "failed", message: "Payment confirmation details are missing or invalid." });
           return;
         }
 
-        setState({ kind: "working", label: "Confirming with Razorpay…" });
-        const res = await apiPost("/api/billing/verify", {
-          orderId: returnedOrderId,
-          paymentId: returnedPaymentId,
-          signature: returnedSignature,
-        });
+        setState({ kind: "working", label: "Confirming with Dodo…" });
+        const res = await apiPost("/api/billing/verify", { orderId: returnedOrderId });
         setState({ kind: "success", tierName: res.tierName });
         router.refresh();
       } catch (e: any) {

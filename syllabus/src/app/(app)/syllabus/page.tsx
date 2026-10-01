@@ -7,7 +7,6 @@ import ProfileCard from "@/components/ProfileCard";
 import Modal from "@/components/Modal";
 import PendingNotice from "@/components/PendingNotice";
 import VerifyCta from "@/components/VerifyCta";
-import AdSlot from "@/components/AdSlot";
 import { LoadingScreen, Spinner, IntentBadge, SectionTitle, Seal, Doodle } from "@/components/ui";
 import { apiGet, apiPost } from "@/lib/fetcher";
 import type { CardProfile } from "@/lib/serialize";
@@ -231,11 +230,6 @@ export default function SyllabusPage() {
             </div>
           </>
         )}
-      </div>
-
-      {/* ============ AD SLOT (syllabus deck) ============ */}
-      <div className="my-6">
-        <AdSlot slot="1122334455" format="auto" className="mx-auto max-w-md" />
       </div>
 
       {/* Action buttons */}

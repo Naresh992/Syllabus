@@ -43,7 +43,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="beforeInteractive"
         />
+        <Script
+          async
+          data-cfasync="false"
+          src="https://pl31583232.profitableratecpmnetwork.com/aeeb1039dc99d6817abc5f57552ddefd/invoke.js"
+          strategy="afterInteractive"
+        />
         {children}
+        <div id="container-aeeb1039dc99d6817abc5f57552ddefd" />
       </body>
     </html>
   );

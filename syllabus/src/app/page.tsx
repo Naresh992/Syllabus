@@ -3,7 +3,6 @@ import Logo from "@/components/Logo";
 import { TIERS, TIER_ORDER } from "@/lib/tiers";
 import { TAGLINE } from "@/lib/constants";
 import { Seal, Marquee, TickerItem, Doodle } from "@/components/ui";
-import AdSlot from "@/components/AdSlot";
 import AdsterraSlot from "@/components/AdsterraSlot";
 
 function SampleCard({
@@ -127,8 +126,9 @@ export default function LandingPage() {
 
       {/* ============ AD SLOT (top) ============ */}
       <div className="mx-auto max-w-6xl px-5 py-8">
-        <AdsterraSlot adKey={process.env.key} className="mx-auto flex min-h-[90px] justify-center overflow-hidden" />
+        <AdsterraSlot adKey={process.env.NEXT_PUBLIC_ADSTERRA_BANNER_KEY} className="mx-auto flex min-h-[90px] justify-center overflow-hidden" />
       </div>
+
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16">
@@ -279,11 +279,6 @@ export default function LandingPage() {
         <TickerItem>No catfish</TickerItem>
         <TickerItem>Add someone today</TickerItem>
       </Marquee>
-
-      {/* ============ AD SLOT (bottom) ============ */}
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <AdSlot slot="0987654321" format="auto" className="mx-auto max-w-screen-xl" />
-      </div>
 
       {/* ============ FINAL CTA ============ */}
       <section className="mx-auto max-w-6xl px-5 py-20 text-center">

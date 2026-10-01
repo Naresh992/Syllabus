@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LoadingScreen, IntentBadge, SectionTitle, Doodle } from "@/components/ui";
 import VerifyCta from "@/components/VerifyCta";
-import AdSlot from "@/components/AdSlot";
 import { apiGet } from "@/lib/fetcher";
 import { timeAgo } from "@/lib/time";
 import type { CardProfile } from "@/lib/serialize";
@@ -89,10 +88,6 @@ export default function RosterPage() {
             ))}
           </div>
 
-          {/* ============ AD SLOT (roster) ============ */}
-          <div className="mt-6">
-            <AdSlot slot="3344556677" format="auto" className="mx-auto max-w-2xl" />
-          </div>
         </>
       )}
     </div>

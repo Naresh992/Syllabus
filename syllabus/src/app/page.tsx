@@ -193,6 +193,22 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+
+          {/* Earn banner — wide card */}
+          <Link
+            href="/earn"
+            className="card group mt-5 flex -rotate-[0.5deg] flex-col items-start gap-4 bg-ink p-6 text-paper-50 transition-transform hover:-translate-y-1 hover:rotate-0 sm:flex-row sm:items-center"
+          >
+            <div className="flex items-center gap-3">
+              <span className="badge shrink-0 bg-marker text-ink">★ New</span>
+              <div className="font-display text-4xl text-marker transition-transform group-hover:scale-110 group-hover:-rotate-6">₹</div>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-display text-xl uppercase">Earn rewards</h3>
+              <p className="mt-1 text-sm font-medium text-paper-50/70">Watch ads, refer friends, complete tasks — cash out via UPI. A bonus layer on top of connecting.</p>
+            </div>
+            <span className="btn-marker shrink-0">Open Earn →</span>
+          </Link>
         </div>
       </section>
 

@@ -84,6 +84,9 @@ export default function LandingPage() {
               How it works
             </Link>
           </div>
+          <p className="font-hand mt-3 text-2xl text-ink-light">
+            no college email needed · verify later for the ✓
+          </p>
           <Doodle name="arrow-curly" className="ml-40 mt-2 hidden h-14 w-14 -scale-x-100 text-redpen sm:block" />
         </div>
 
@@ -244,6 +247,35 @@ export default function LandingPage() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* ============ FRESH ON CAMPUS ============ */}
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <p className="font-hand text-center text-3xl text-redpen">fresh on campus</p>
+        <h2 className="font-display text-center text-4xl uppercase sm:text-5xl">
+          New this <span className="hl">semester.</span>
+        </h2>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { e: "⚡", t: "60-second signup", d: "Name, any email, password. No college email, no ID upload to join.", href: "/enroll", r: "-rotate-2" },
+            { e: "👀", t: "Blurred previews", d: "Browse real verified students blurred — verify only when you want more.", href: "/enroll", r: "rotate-1" },
+            { e: "✓", t: "Instant tick", d: "College email verifies instantly. Otherwise ID + selfie, ~2 hours.", href: "/enroll?m=verify", r: "-rotate-1" },
+            { e: "₹", t: "Earn tab", d: "Watch ads, refer friends, finish tasks — cash out via UPI.", href: "/earn", r: "rotate-2" },
+          ].map((f) => (
+            <Link
+              key={f.t}
+              href={f.href}
+              className={`card group p-6 transition-transform hover:rotate-0 hover:scale-[1.03] ${f.r}`}
+            >
+              <div className="font-display text-4xl text-crimson-600 transition-transform group-hover:scale-110 group-hover:-rotate-6">
+                {f.e}
+              </div>
+              <h3 className="font-display mt-3 text-xl uppercase">{f.t}</h3>
+              <p className="mt-1 text-sm font-medium text-ink-light">{f.d}</p>
+              <p className="font-hand mt-2 text-xl text-crimson-600">check it out →</p>
+            </Link>
+          ))}
         </div>
       </section>
 

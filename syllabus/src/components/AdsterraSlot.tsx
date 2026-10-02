@@ -25,7 +25,7 @@ export default function AdsterraSlot({ adKey, className }: AdsterraSlotProps) {
 
     const invoke = document.createElement("script");
     invoke.async = true;
-    invoke.src = `https://www.highrevenueformat.com/${encodeURIComponent(adKey)}/invoke.js`;
+    invoke.src = `https://pl31583232.profitableratecpmnetwork.com/${encodeURIComponent(adKey)}/invoke.js`;
 
     container.append(options, invoke);
 

@@ -126,7 +126,7 @@ export default function LandingPage() {
 
       {/* ============ AD SLOT (top) ============ */}
       <div className="mx-auto max-w-6xl px-5 py-8">
-        <AdsterraSlot adKey={process.env.NEXT_PUBLIC_ADSTERRA_BANNER_KEY} className="mx-auto flex min-h-[90px] justify-center overflow-hidden" />
+        <AdsterraSlot adKey={process.env.key} className="mx-auto flex min-h-[90px] justify-center overflow-hidden" />
       </div>
 
 

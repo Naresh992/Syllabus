@@ -2,6 +2,18 @@
 
 import { useEffect, useRef } from "react";
 
+declare global {
+  interface Window {
+    atOptions?: {
+      key: string;
+      format: string;
+      height: number;
+      width: number;
+      params: Record<string, string>;
+    };
+  }
+}
+
 interface AdsterraSlotProps {
   adKey?: string;
   className?: string;
@@ -14,23 +26,21 @@ export default function AdsterraSlot({ adKey, className }: AdsterraSlotProps) {
     const container = containerRef.current;
     if (!container || !adKey) return;
 
-    const options = document.createElement("script");
-    options.text = `window.atOptions = {
-  key: ${JSON.stringify(adKey)},
-  format: "iframe",
-  height: 90,
-  width: 728,
-  params: {}
-};`;
+    window.atOptions = {
+      key: adKey,
+      format: "iframe",
+      height: 90,
+      width: 728,
+      params: {},
+    };
 
     const invoke = document.createElement("script");
     invoke.async = true;
-    invoke.src = `https://www.highrevenueformat.com/${encodeURIComponent(adKey)}/invoke.js`;
+    invoke.src = `https://pl31583232.profitableratecpmnetwork.com/${encodeURIComponent(adKey)}/invoke.js`;
 
-    container.append(options, invoke);
+    container.appendChild(invoke);
 
     return () => {
-      options.remove();
       invoke.remove();
     };
   }, [adKey]);

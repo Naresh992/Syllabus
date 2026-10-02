@@ -22,12 +22,12 @@ export default function VerifyCta({
       <h1 className="font-display text-2xl uppercase leading-tight sm:text-3xl">{title}</h1>
       <p className="mx-auto mt-2 max-w-sm text-ink-light">
         {body ??
-          "You're browsing blurred previews. Upload your college ID + a live selfie to unblur profiles and message your connections. Your ID is never shown to other users."}
+          "You're browsing blurred previews. Get your ✓ tick two ways: instant with a college email, or ID + selfie reviewed within 2 hours. Documents are never shown to other users."}
       </p>
 
       <div className="mx-auto mt-5 max-w-xs space-y-1.5 rounded-xl border-2 border-forest-600/20 bg-forest-600/5 p-3 text-left text-xs font-semibold text-ink-light">
+        <p>✉️ College email = instant tick</p>
         <p>🔒 ID + selfie never shown to other users</p>
-        <p>⚡ Verified within 2 hours</p>
         <p>🎓 Only real, enrolled 18+ students</p>
       </div>
 

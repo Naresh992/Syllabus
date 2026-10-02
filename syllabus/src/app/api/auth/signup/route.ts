@@ -22,9 +22,11 @@ export async function POST(req: Request) {
   }
   const { name, email, password, dob } = parsed.data;
 
-  // Students from ANY college, city, or country can join. If the email domain
-  // matches a known campus (.edu), auto-detect it; otherwise the student is
-  // verified manually from their college ID by an admin.
+  // Signup is deliberately easy: name + any email + password (+dob for the
+  // 18+ gate). College is optional — students verify later for the ✓ tick,
+  // either instantly with a college email or via ID + selfie review.
+  // If the email domain matches a known campus, we auto-detect it AND grant
+  // the verified tick immediately (method: college email).
   const domain = email.split("@")[1] ?? "";
   const campus = await prisma.campus.findUnique({ where: { domain } }).catch(() => null);
 
@@ -32,9 +34,6 @@ export async function POST(req: Request) {
   if (campus) {
     college = college || campus.name;
     city = city || campus.city || "";
-  }
-  if (!college) {
-    return apiError.badRequest("Tell us your college or university.");
   }
 
   // Hard 18+ gate
@@ -55,10 +54,10 @@ export async function POST(req: Request) {
       passwordHash: await hashPassword(password),
       dob: new Date(dob),
       campusId: campus?.id ?? null,
-      college,
+      college: college || null,
       city: city || null,
       country: country || null,
-      verificationStatus: "pending",
+      verificationStatus: campus ? "approved" : "unverified",
       subscription: { create: { tier: "audit", status: "active" } },
     },
   });

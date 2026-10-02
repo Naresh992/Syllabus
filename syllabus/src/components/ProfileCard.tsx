@@ -127,6 +127,9 @@ export default function ProfileCard({
           </div>
           <div className="pointer-events-auto mt-2 flex flex-wrap gap-1.5">
             <IntentBadge intent={profile.intent} />
+            {!profile.blurred && (
+              <span className="badge bg-forest-600 text-paper-50 shadow-sticker-sm" title="ID-verified student">✓ Verified</span>
+            )}
             {profile.hookupOptIn && (
               <span className="badge bg-paper-50 text-redpen shadow-sticker-sm">Open to hookups</span>
             )}

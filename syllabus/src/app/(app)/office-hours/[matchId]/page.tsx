@@ -88,7 +88,7 @@ export default function ThreadPage({ params }: { params: { matchId: string } }) 
       <VerifyCta
         className="mt-10"
         title="Verify to message"
-        body="You matched! Unlock this conversation by verifying your college ID + a live selfie. Your documents are never shown to other users."
+        body="You matched! Unlock this conversation with the ✓ tick — instant via college email, or ID + selfie reviewed within 2 hours."
         cta="Get verified (2h) →"
       />
     );

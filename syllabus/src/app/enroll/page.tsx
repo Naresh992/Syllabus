@@ -20,9 +20,10 @@ import {
 type Stage =
   | "loading"
   | "account"
+  | "options"
+  | "email"
   | "id"
   | "selfie"
-  | "dob"
   | "profile"
   | "prerequisites"
   | "pending";
@@ -53,7 +54,7 @@ async function fileToDataUrl(file: File, max = 800, quality = 0.72): Promise<str
   return canvas.toDataURL("image/jpeg", quality);
 }
 
-const NEW_STEPS = ["dob", "account", "profile", "prerequisites"];
+const NEW_STEPS = ["account", "profile", "prerequisites"];
 
 export default function EnrollPage() {
   const router = useRouter();
@@ -67,14 +68,13 @@ export default function EnrollPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [college, setCollege] = useState("");
-  const [city, setCity] = useState("");
-  const [country, setCountry] = useState("");
   // docs
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   // dob
   const [dob, setDob] = useState("");
+  // college-email verification
+  const [collegeEmail, setCollegeEmail] = useState("");
   // profile
   const [photos, setPhotos] = useState<string[]>([]);
   const [bio, setBio] = useState("");
@@ -95,24 +95,24 @@ export default function EnrollPage() {
   useEffect(() => {
     apiGet("/api/auth/me")
       .then(({ user }) => {
-        // Verify mode: came from /enroll?m=verify
+        // Verify mode: came from /enroll?m=verify — pick a path, don't force docs.
         if (pathname.includes("?m=verify")) {
           setMode("verify");
           if (user.verificationStatus === "approved") {
             router.push("/syllabus");
           } else {
-            setStage("id");
+            setStage("options");
           }
           return;
         }
-        
+
         if (user.hasProfile && user.verificationStatus === "approved") {
           router.push("/syllabus");
           return;
         }
         if (user.hasProfile && user.verificationStatus === "rejected") {
           setMode("resubmit");
-          setStage("id");
+          setStage("options");
           return;
         }
         if (!user.hasProfile) {
@@ -122,7 +122,7 @@ export default function EnrollPage() {
         }
         setStage("profile");
       })
-      .catch(() => setStage("dob"));
+      .catch(() => setStage("account")); // not logged in → one-screen signup
   }, [pathname, router]);
 
   const dobAge = dob ? calcAge(dob) : null;
@@ -132,18 +132,35 @@ export default function EnrollPage() {
     e.preventDefault();
     setError(null);
     if (name.trim().length < 1) return setError("Enter your name.");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError("Enter a valid email.");
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
+    if (!dob) return setError("Enter your date of birth.");
     if (dobAge == null || dobAge < MIN_AGE) return setError(`You must be at least ${MIN_AGE} to join Resyllabus.`);
-    if (college.trim().length < 2) return setError("Tell us your college or university.");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError("Enter a valid email — any email works.");
+    if (password.length < 8) return setError("Password must be at least 8 characters.");
     setBusy(true);
     try {
-      await apiPost("/api/auth/signup", { name, email, password, dob, college, city, country });
+      await apiPost("/api/auth/signup", { name, email, password, dob });
       setMode("finish");
       setStage("profile");
     } catch (err: any) {
       setError(err.message);
-      if (/email|campus|\.edu|exists/i.test(err.message)) setStage("account");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitCollegeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(collegeEmail.trim())) {
+      return setError("Enter a valid college email.");
+    }
+    setBusy(true);
+    try {
+      await apiPost("/api/verification/college-email", { email: collegeEmail });
+      router.refresh();
+      router.push("/syllabus");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setBusy(false);
     }
@@ -163,38 +180,14 @@ export default function EnrollPage() {
   async function afterSelfie() {
     setError(null);
     if (!selfie) return setError("Add a selfie to continue.");
-    if (mode === "resubmit") {
-      setBusy(true);
-      try {
-        await apiPost("/api/verification", { idPhotoUrl: idPhoto, selfieUrl: selfie });
-        setStage("pending");
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setBusy(false);
-      }
-    } else {
-      setStage("dob");
-    }
-  }
-
-  async function submitDob() {
-    setError(null);
-    if (!dob) return setError("Enter your date of birth.");
-    if (dobAge == null || dobAge < MIN_AGE) {
-      return setError(`You must be at least ${MIN_AGE} to join Resyllabus.`);
-    }
-    // Create account + attach verification docs.
+    // ID path (fresh verify or resubmit): submit docs, then wait for review.
     setBusy(true);
     try {
-      await apiPost("/api/auth/signup", { name, email, password, dob, college, city, country });
       await apiPost("/api/verification", { idPhotoUrl: idPhoto, selfieUrl: selfie });
       router.refresh();
-      setStage("profile");
+      setStage("pending");
     } catch (err: any) {
       setError(err.message);
-      // Domain / duplicate errors relate to the account step.
-      if (/email|campus|\.edu|exists/i.test(err.message)) setStage("account");
     } finally {
       setBusy(false);
     }
@@ -235,13 +228,11 @@ export default function EnrollPage() {
         ageMax,
         sameCampusOnly,
       });
-      const { user } = await apiGet("/api/auth/me");
+      await apiGet("/api/auth/me");
       router.refresh();
-      if (user.verificationStatus === "approved") {
-        router.push("/syllabus");
-      } else {
-        setStage("pending");
-      }
+      // Everyone enters browse mode — verified or not. Unverified users see
+      // blurred previews + a verify CTA; the tick unlocks messaging.
+      router.push("/syllabus");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -260,7 +251,7 @@ export default function EnrollPage() {
 
       <main className="mx-auto max-w-2xl px-5 pb-16">
         {/* Progress */}
-        {mode !== "resubmit" && stage !== "loading" && stage !== "pending" && (
+        {(mode === "new" || mode === "finish") && stage !== "loading" && stage !== "pending" && (
           <div className="mb-6 flex items-center gap-1.5">
             {NEW_STEPS.map((s, i) => (
               <div
@@ -282,7 +273,7 @@ export default function EnrollPage() {
         {stage === "account" && (
           <StepCard
             title="Create your account"
-            subtitle="Any student, any college, any country. Use a .edu email and we'll auto-detect your campus."
+            subtitle="Just your details + any email. No college email needed — grab the ✓ tick later if you want it."
           >
             <form onSubmit={submitAccount} className="space-y-4">
               <div>
@@ -290,29 +281,82 @@ export default function EnrollPage() {
                 <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Rivera" required />
               </div>
               <div>
-                <label className="label">Email</label>
-                <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@college.edu" required />
+                <label className="label">Date of birth (18+ only)</label>
+                <input className="input" type="date" value={dob} onChange={(e) => setDob(e.target.value)} max={new Date().toISOString().slice(0, 10)} required />
+                {dobAge != null && (
+                  <p className={`mt-1 text-sm ${dobAge < MIN_AGE ? "text-redpen" : "text-forest-700"}`}>
+                    {dobAge < MIN_AGE ? `You must be at least ${MIN_AGE}.` : `You're ${dobAge}. `}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="label">College / University</label>
-                <input className="input" value={college} onChange={(e) => setCollege(e.target.value)} placeholder="e.g. University of Mumbai" required />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label">City</label>
-                  <input className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Mumbai" />
-                </div>
-                <div>
-                  <label className="label">Country</label>
-                  <input className="input" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="India" />
-                </div>
+                <label className="label">Email — any email works</label>
+                <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@anything.com" required />
               </div>
               <div>
                 <label className="label">Password</label>
                 <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" required />
               </div>
               <ErrorLine error={error} />
-              <button className="btn-primary w-full" type="submit">Continue</button>
+              <button className="btn-primary w-full" type="submit" disabled={busy}>
+                {busy ? <Spinner className="h-4 w-4" /> : "Create account"}
+              </button>
+              <p className="text-center text-xs text-ink-faint">
+                Signing up with a college email? You&apos;ll get the ✓ tick instantly.{" "}
+                <Link href="/privacy" className="underline">Privacy</Link>
+              </p>
+            </form>
+          </StepCard>
+        )}
+
+        {stage === "options" && (
+          <StepCard
+            title="Get your verified tick"
+            subtitle="Optional — but only ✓ members can unblur profiles and message. Pick a path (or skip for now)."
+          >
+            <div className="space-y-3">
+              <button
+                onClick={() => { setError(null); setStage("email"); }}
+                className="block w-full rounded-2xl border-2 border-ink bg-forest-600 p-4 text-left text-paper-50 shadow-sticker-sm transition hover:rotate-[0.5deg]"
+              >
+                <p className="font-display text-base uppercase">✉ College email — instant ⚡</p>
+                <p className="mt-1 text-xs font-medium opacity-90">Your campus domain = instant tick. No waiting.</p>
+              </button>
+              <button
+                onClick={() => { setError(null); setStage("id"); }}
+                className="block w-full rounded-2xl border-2 border-ink bg-paper-50 p-4 text-left shadow-sticker-sm transition hover:rotate-[0.5deg]"
+              >
+                <p className="font-display text-base uppercase">🪪 Student ID + selfie — ~2h</p>
+                <p className="mt-1 text-xs font-medium text-ink-light">Any email works. Reviewed by a human, never shown to others.</p>
+              </button>
+              <ErrorLine error={error} />
+              <Link href="/syllabus" className="btn-ghost w-full">
+                Skip for now — browse blurred
+              </Link>
+            </div>
+          </StepCard>
+        )}
+
+        {stage === "email" && (
+          <StepCard
+            title="Verify with college email"
+            subtitle="If your address belongs to a known campus, the ✓ tick is instant."
+          >
+            <form onSubmit={submitCollegeEmail} className="space-y-4">
+              <div>
+                <label className="label">College email</label>
+                <input className="input" type="email" value={collegeEmail} onChange={(e) => setCollegeEmail(e.target.value)} placeholder="you@college.edu" required />
+              </div>
+              <ErrorLine error={error} />
+              <div className="flex gap-2">
+                <button type="button" className="btn-ghost flex-1" onClick={() => setStage("options")}>Back</button>
+                <button type="submit" className="btn-primary flex-1" disabled={busy}>
+                  {busy ? <Spinner className="h-4 w-4" /> : "Verify instantly"}
+                </button>
+              </div>
+              <p className="text-center text-xs text-ink-faint">
+                No college email? <button type="button" className="underline" onClick={() => setStage("id")}>Use your student ID instead</button>
+              </p>
             </form>
           </StepCard>
         )}
@@ -330,9 +374,7 @@ export default function EnrollPage() {
             </div>
             <Uploader label="College ID photo" preview={idPhoto} onPick={onPickId} emoji="🪪" />
             <div className="mt-5 flex gap-2">
-              {mode !== "resubmit" && (
-                <button className="btn-ghost flex-1" onClick={() => setStage("account")}>Back</button>
-              )}
+              <button className="btn-ghost flex-1" onClick={() => setStage("options")}>Back</button>
               <button className="btn-primary flex-1" onClick={() => (idPhoto ? setStage("selfie") : setError("Add your ID photo."))}>
                 Continue
               </button>
@@ -352,24 +394,6 @@ export default function EnrollPage() {
               <button className="btn-ghost flex-1" onClick={() => setStage("id")}>Back</button>
               <button className="btn-primary flex-1" onClick={afterSelfie} disabled={busy}>
                 {busy ? <Spinner className="h-4 w-4" /> : "Continue"}
-              </button>
-            </div>
-            <ErrorLine error={error} />
-          </StepCard>
-        )}
-
-        {stage === "dob" && (
-          <StepCard title="Your date of birth" subtitle="Resyllabus is strictly 18+. Under-18 sign-ups are blocked.">
-            <input className="input" type="date" value={dob} onChange={(e) => setDob(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
-            {dobAge != null && (
-              <p className={`mt-2 text-sm ${dobAge < MIN_AGE ? "text-redpen" : "text-forest-700"}`}>
-                {dobAge < MIN_AGE ? `You must be at least ${MIN_AGE}.` : `You're ${dobAge}. `}
-              </p>
-            )}
-            <div className="mt-5 flex gap-2">
-              <button className="btn-ghost flex-1" onClick={() => setStage("selfie")}>Back</button>
-              <button className="btn-primary flex-1" onClick={submitDob} disabled={busy || dobAge == null || dobAge < MIN_AGE}>
-                {busy ? <Spinner className="h-4 w-4" /> : "Create account"}
               </button>
             </div>
             <ErrorLine error={error} />
@@ -455,7 +479,7 @@ export default function EnrollPage() {
               <ErrorLine error={error} />
               <div className="flex gap-2">
                 {mode === "new" && (
-                  <button className="btn-ghost" onClick={() => setStage("dob")}>Back</button>
+                  <button className="btn-ghost" onClick={() => setStage("account")}>Back</button>
                 )}
                 <button className="btn-primary flex-1" onClick={submitProfile}>Next: Prerequisites</button>
               </div>

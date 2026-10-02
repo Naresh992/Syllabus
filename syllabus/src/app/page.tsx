@@ -134,14 +134,14 @@ export default function LandingPage() {
       <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-16">
         <p className="font-hand text-center text-3xl text-redpen">ok so how does class work?</p>
         <h2 className="font-display mx-auto max-w-2xl text-center text-4xl uppercase leading-none sm:text-5xl">
-          Verification first. <span className="hl">Connections second.</span>
+          Enroll in seconds. <span className="hl">Verify when ready.</span>
         </h2>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { n: "01", t: "Enroll", d: "Sign up from any college in the world. Upload your student ID + a live selfie.", r: "-rotate-2", c: "bg-marker" },
-            { n: "02", t: "Get verified", d: "We confirm you're a real 18+ student before you can browse a single profile.", r: "rotate-1", c: "bg-crimson-600" },
-            { n: "03", t: "Hit the Syllabus", d: "Swipe right to ADD, left to DROP. Set your Prerequisites, raise hands.", r: "-rotate-1", c: "bg-forest-600" },
-            { n: "04", t: "Office Hours", d: "          Connect into your Roster and start chatting. Respectfully.", r: "rotate-2", c: "bg-ink" },
+            { n: "01", t: "Enroll", d: "Name, email, password — any email works. Build your profile in minutes.", r: "-rotate-2", c: "bg-marker" },
+            { n: "02", t: "Browse blurred", d: "Peek at blurred previews of real verified students near you. No ID needed to look.", r: "rotate-1", c: "bg-crimson-600" },
+            { n: "03", t: "Get verified", d: "College email = instant ✓ tick. Or student ID + selfie, reviewed within 2 hours.", r: "-rotate-1", c: "bg-forest-600" },
+            { n: "04", t: "Office Hours", d: "Verified members unblur, match and message. Respectfully.", r: "rotate-2", c: "bg-ink" },
           ].map((s) => (
             <div key={s.n} className={`card taped p-6 pt-8 transition-transform hover:rotate-0 hover:scale-[1.03] ${s.r}`}>
               <div className={`inline-block rounded-lg border-2 border-ink px-2 py-0.5 font-display text-sm text-paper-50 ${s.c}`}>
@@ -222,7 +222,7 @@ export default function LandingPage() {
             </h2>
             <p className="mt-4 max-w-md font-medium text-paper-50/70">
               Verified-only platforms are full of bots and liars. Resyllabus isn&apos;t. Every single profile is a
-              verified, 18+ college student — reviewed <i>before</i> they can ever see yours.
+              verified, 18+ college student — verified <i>before</i> they can ever message you.
             </p>
             <Link href="/enroll" className="btn-marker mt-6 -rotate-1">
               Get verified →

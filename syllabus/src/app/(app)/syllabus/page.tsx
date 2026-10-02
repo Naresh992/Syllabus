@@ -315,7 +315,7 @@ export default function SyllabusPage() {
         <VerifyCta
           plain
           title="Verify to connect"
-          body="You're on blurred previews right now. Upload your college ID + a selfie to unblur profiles, add & drop, and start conversations."
+          body="You're on blurred previews right now. Get the ✓ tick — instant with a college email, or ID + selfie — to unblur profiles, add & drop, and message."
           cta="Get verified (2h) →"
         />
       </Modal>

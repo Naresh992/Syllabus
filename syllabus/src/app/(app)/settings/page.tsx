@@ -138,6 +138,11 @@ export default function SettingsPage() {
           <span className="text-ink-faint">Status</span>
           <span className="text-right">
             <StatusBadge status={me.verificationStatus} />
+            {me.verificationStatus !== "approved" && (
+              <Link href="/enroll?m=verify" className="ml-2 text-xs font-bold text-forest-700 underline">
+                Get verified ✓
+              </Link>
+            )}
           </span>
         </div>
       </section>
@@ -328,11 +333,13 @@ export default function SettingsPage() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
+    unverified: "bg-paper-200 text-ink-light",
     pending: "bg-amber-100 text-amber-800",
     approved: "bg-forest-600/15 text-forest-700",
     rejected: "bg-redpen/10 text-redpen",
   };
-  return <span className={`badge ${map[status] ?? "bg-paper-200"}`}>{status}</span>;
+  const label = status === "unverified" ? "not verified yet" : status;
+  return <span className={`badge ${map[status] ?? "bg-paper-200"}`}>{label}</span>;
 }
 
 function PasswordForm() {
